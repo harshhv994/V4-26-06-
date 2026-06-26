@@ -1,0 +1,9 @@
+ID,Type,Card Name,Category,Sem_Start,Sem_End,Cost_Time,Cost_Health,Cost_Study,Cost_Social,Cost_Money,Cost_Stress,Req_Prerequisite,Reward_Algo,Reward_POR,Reward_Res,Reward_Prod,Reward_Money,Est. CTC
+OPP_200,PLACE,God-Tier Quant,Placement,7,7,0,0,0,0,0,0,CPI:9.0 | Algo:3 | Research:2 | Quant Intern,0,0,0,0,5,90+ LPA
+OPP_201,PLACE,Elite SDE,Placement,7,7,0,0,0,0,0,0,CPI:8.5 | Algo:3 | POR:1 | Research:1 | SDE Intern,0,0,0,0,4,60–144 LPA
+OPP_202,PLACE,Elite AI/ML,Placement,7,7,0,0,0,0,0,0,CPI:8.0 | Algo:2 | Research:3 | ML/AI Intern,0,0,0,0,4,50–70 LPA
+OPP_203,PLACE,Top Consulting,Placement,7,7,0,0,0,0,0,0,CPI:7.5 | POR:3 | Research:1 | Product:1 | Consulting Intern,0,0,0,0,3,23–47 LPA
+OPP_204,PLACE,Top Product,Placement,7,7,0,0,0,0,0,0,CPI:7.0 | POR:2 | Product:3 | APM Intern,0,0,0,0,3,26–56 LPA
+OPP_205,PLACE,Tier 1 SDE,Placement,7,7,0,0,0,0,0,0,CPI:8.0 | Algo:2 | POR:1 | Research:1 | Product:1 | SDE Intern,0,0,0,0,2,38–51 LPA
+OPP_206,PLACE,Tier 1 Analytics,Placement,7,7,0,0,0,0,0,0,CPI:7.5 | Algo:1 | POR:1 | Research:1 | Data Analyst Intern,0,0,0,0,2,17–36 LPA
+OPP_207,PLACE,Baseline Safe Placement,Placement,7,7,0,0,0,0,0,0,CPI:6.5 | Algo:1 | Any Intern,0,0,0,0,1,12–15 LPA

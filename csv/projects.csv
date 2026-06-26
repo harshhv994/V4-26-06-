@@ -1,0 +1,7 @@
+ID,Type,Card Name,Category,Sem_Start,Sem_End,Cost_Time,Cost_Health,Cost_Study,Cost_Social,Cost_Money,Cost_Stress,Req_Prerequisite,Reward_Algo,Reward_POR,Reward_Res,Reward_Prod
+PROJ_001,PROJECT,cp_ladder,Project,1,8,3,0,0,0,0,0,None,1,0,0,0
+PROJ_002,PROJECT,quant_ml_research,Project,1,8,6,0,0,0,0,0,None,1,0,2,0
+PROJ_003,PROJECT,data_analytics_project,Project,1,8,3,0,0,0,0,0,None,1,0,0,1
+PROJ_004,PROJECT,product_build,Project,1,8,4,0,0,0,0,0,None,1,0,0,1
+PROJ_005,PROJECT,product_case_study,Project,1,8,4,0,0,0,0,0,None,0,0,0,2
+PROJ_006,PROJECT,core_engineering_project,Project,1,8,5,0,0,0,0,0,None,0,0,2,0

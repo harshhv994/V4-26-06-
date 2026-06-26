@@ -1,0 +1,24 @@
+ID,Type,Card Name,Category,Sem_Start,Sem_End,Cost_Time,Cost_Health,Cost_Study,Cost_Social,Cost_Money,Cost_Stress,Req_Prerequisite,Reward_Algo,Reward_POR,Reward_Res,Reward_Prod,Flavor_Text
+EVT_001,RANDOM,Wing Treat,Social,1,8,0,2,0,1,0,-2,None,0,0,0,0,"A senior spots you at MT looking entirely burnt out and buys you a cold coffee. Hearing ""everyone fails this course"" drops your stress instantly."
+EVT_002,RANDOM,Proxy Legend,Academic,1,8,1,0,-1,0,0,0,None,0,0,0,0,"You overslept for an 8 AM lecture, but a wingmate clutched the proxy. You save time, but completely miss the core concepts."
+EVT_003,RANDOM,Movie Night,Social,1,8,0,2,-1,2,0,0,None,0,0,0,0,"The wing decides to pirate a movie at 2 AM. You sacrifice your sleep and study plans for pure, unadulterated bonding."
+EVT_004,RANDOM,Study Partner,Academic,1,8,1,0,3,1,0,0,None,0,0,0,0,"You find someone in the PKK Library who actually understands the assignment. A highly productive, collaborative session ensues."
+EVT_005,RANDOM,Canteen Treat,Social,1,8,0,1,0,1,-1,-1,None,0,0,0,0,Midnight hunger strikes. You spend your limited cash on a Maggi break at the Hall Canteen to preserve your sanity.
+EVT_006,RANDOM,Cycle Puncture,Travel,1,8,-1,-1,0,-1,-1,0,None,0,0,0,0,Your secondhand cycle betrays you on the way to LHC. You waste precious time dragging it to the repair shop.
+EVT_007,RANDOM,Common Cold,Health,1,8,3,-3,-2,-1,-1,0,None,0,0,0,0,"The campus weather shifts and the ""IITK cough"" gets you. You are bedridden and lose critical momentum."
+EVT_008,RANDOM,Laundry Delay,Life,1,8,1,-1,0,-2,-1,0,None,0,0,0,0,"The washing machines are full, and someone dumped your wet clothes out. You waste time sorting out the hostel chaos."
+EVT_009,RANDOM,Mess Strike,Life,1,8,1,-2,0,0,-2,1,None,0,0,0,0,The mess food is entirely inedible today. You either starve or spend your limited cash eating at the food court.
+EVT_010,RANDOM,Lost ID Card,Admin,1,8,3,-2,-1,-1,-2,0,None,0,0,0,0,Panic sets in at the library gate. Your ID is gone. You spend hours navigating the DOAA office to get a replacement.
+EVT_011,RANDOM,Attendance Shortage,Academic,1,8,2,-1,-3,0,0,1,None,0,0,0,0,"You receive the dreaded ""short attendance"" warning email. You must spend extra blocks begging the professor or face an automatic grade drop."
+EVT_012,RANDOM,Assignment Overload,Academic,1,8,2,-2,-2,-2,0,2,None,0,0,0,0,"Three different deadlines hit on the exact same day. You are forced into an all-nighter, completely sacrificing your health and social life."
+EVT_013,RANDOM,Power Cut,Life,1,8,0,-1,-1,1,0,0,None,0,0,0,0,"The hostel loses power in the middle of summer. Study efficiency plummets, but the whole wing gathers outside to complain, bonding in the heat."
+EVT_014,RANDOM,Perfect Timetable,Admin,1,8,0,0,2,0,0,-1,None,0,0,0,0,"Ping! Course allotment goes perfectly. You have no 8 AM classes and get a ""god schedule,"" putting you in a fantastic mental state for the semester."
+EVT_015,RANDOM,Chill Prof Luck,Academic,1,8,0,0,1,0,0,-1,None,0,0,0,0,You draw the lottery: the professor for your heaviest core course is surprisingly chill and doesn't care about strict deadlines.
+EVT_016,RANDOM,FCH Shock,Academic,1,8,0,0,-1,0,0,2,None,0,0,0,0,"The first quiz for your core department course hits. You realize ""First Class Honours"" isn't a guarantee here. The academic anxiety spikes."
+EVT_017,RANDOM,Cracked Study Group,Academic,1,8,1,0,4,1,0,0,None,0,0,0,0,"You manage to join a study group with the batch toppers. The imposter syndrome is real, but your understanding of the material skyrockets."
+EVT_018,RANDOM,Assignment Backlog,Academic,1,8,2,0,-2,0,0,2,None,0,0,0,0,"You ignored one assignment, and now it has snowballed into three. You have to lock yourself in the CC and grind just to break even."
+EVT_019,RANDOM,Overparty Crash,Social,1,8,0,-2,-1,0,0,0,None,0,0,0,0,"A massive post-midsem celebration goes too long. You wake up feeling terrible, having completely destroyed your momentum for the next day."
+EVT_020,RANDOM,Paper Went Easy,Academic,1,8,0,0,3,0,0,-2,None,0,0,0,0,You walk out of the exam hall feeling light as a feather. The questions matched what you actually studied. Pure relief washes over you.
+EVT_021,RANDOM,Clicked Concepts,Academic,1,8,0,0,4,0,0,-2,None,0,0,0,0,"After weeks of staring at the textbook, the abstract math finally clicks in your head. You feel like a genius for exactly five minutes."
+EVT_022,RANDOM,Blank Mind,Academic,1,8,0,0,-3,0,0,2,None,0,0,0,0,"You sit down in the examination hall, look at Question 1, and your mind completely blanks. The creeping dread of a failing grade sets in."
+EVT_023,RANDOM,Project Breakthrough,Academic,1,8,2,0,4,0,0,0,None,0,0,0,0,"The code compiles. The error is gone. Everything finally works. You sink a massive amount of time into refining it, but the payoff is huge."
