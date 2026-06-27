@@ -41,291 +41,15 @@
             <button id="btn-next-phase" onclick="CampusSimulator.nextPhase()" style="padding: 10px 20px; cursor: pointer; background: var(--accent-blue); color: white; border: none; border-radius: var(--border-radius); font-weight: bold;">Next Phase</button>
         </div>
     </footer>
+
+
     <script src="js/state.js"></script>
+    <script src="js/logic.js"></script>
+    <script src="js/ui.js"></script>
     <script>
         // ========== PHASE 0: GAME ENGINE ==========
         const CampusSimulator = (() => {
-            // --- 1. CORE DATABASE & PHASE CONSTANTS ---
-            
-
-            // --- 3. UI LAYER (Rendering) ---
-            const UI = {
-                updateHUD: function(stats, resume, turn, semester, blocks) {
-                    document.getElementById('survival-stats').innerHTML = `
-                        <div class="stat-box">❤️ Health: ${Math.max(0, stats.Health)}</div>
-                        <div class="stat-box">😰 Stress: ${stats.Stress}</div>
-                        <div class="stat-box">👥 Social: ${stats.Social}</div>
-                        <div class="stat-box">💵 Money: ₹${stats.Money}</div>
-                    `;
-                    document.getElementById('resume-stats').innerHTML = `
-                        <div class="stat-box">📊 Projects: ${resume.Projects}</div>
-                        <div class="stat-box">🏢 Internships: ${resume.Internships}</div>
-                        <div class="stat-box">🎓 Positions: ${resume.Positions}</div>
-                        <div class="stat-box">📈 CPI: ${(stats.CPI || 0).toFixed(2)}</div>
-                    `;
-                    document.getElementById('time-tracker').innerHTML = `Sem ${semester} | Turn ${turn} | Blocks: ${blocks}`;
-                },
-
-                updateEventLog: function(logs) {
-                    const logHTML = logs.map(log => {
-                        let color = 'var(--text-muted)';
-                        if (log.type === 'opportunity') color = 'var(--accent-gold)';
-                        if (log.type === 'friction') color = 'var(--accent-red)';
-                        if (log.type === 'location') color = 'var(--accent-blue)';
-
-                        let effectsHTML = '';
-                        for (const [stat, value] of Object.entries(log.effects)) {
-                            const isPositive = value > 0;
-                            const sign = isPositive ? '+' : '';
-                            
-                            let pillColor = 'var(--text-muted)';
-                            if (['Health', 'Social', 'Study', 'Money'].includes(stat)) {
-                                pillColor = isPositive ? 'var(--accent-green)' : 'var(--accent-red)';
-                            } else if (['Stress', 'Time'].includes(stat)) {
-                                pillColor = isPositive ? 'var(--accent-red)' : 'var(--accent-green)';
-                            }
-
-                            effectsHTML += `<span style="display:inline-block; margin-right: 5px; margin-top: 5px; font-size: 0.75em; padding: 2px 6px; border-radius: 4px; background: rgba(0,0,0,0.3); border: 1px solid ${pillColor}; color: ${pillColor}; font-weight: bold;">${sign}${value} ${stat}</span>`;
-                        }
-
-                        return `
-                            <div style="margin-bottom: 15px; border-left: 3px solid ${color}; padding: 8px 10px; background: rgba(255,255,255,0.02); border-radius: 0 8px 8px 0;">
-                                <div style="font-size: 0.75em; color: var(--text-muted); text-transform: uppercase;">Sem ${log.semester} | Turn ${log.turn}</div>
-                                <div style="font-size: 1.05em; font-weight: bold; margin-top: 4px; color: ${color};">
-                                    ${log.icon} ${log.title}
-                                </div>
-                                <div>${effectsHTML}</div>
-                            </div>
-                        `;
-                    }).join('');
-
-                    document.getElementById('event-log').innerHTML = logHTML;
-                },
-
-                updateNarrativeSidePanel: function(phase, vibe) {
-                    document.getElementById('current-phase').textContent = phase;
-                    document.getElementById('phase-vibe').textContent = vibe;
-                },
-
-                updateBoard: function(html) {
-                    document.getElementById('board-panel').innerHTML = html;
-                },
-
-                renderNarrative: function(phase, psychology, poetic) {
-                    return `<div class="game-card">
-                        <h3>${phase}</h3>
-                        <p style="margin-top: 10px; line-height: 1.6;">${psychology}</p>
-                        <p style="margin-top: 10px; font-style: italic; color: var(--text-muted);">"${poetic}"</p>
-                    </div>`;
-                },
-
-                renderFriction: function(eventCard) {
-                    if (!eventCard) return '<div class="game-card"><p>No friction events for this semester.</p></div>';
-                    
-                    const costTime = Logic.getSafeInt(eventCard.Cost_Time);
-                    const costHealth = Logic.getSafeInt(eventCard.Cost_Health);
-                    const costStress = Logic.getSafeInt(eventCard.Cost_Stress);
-                    const costSocial = Logic.getSafeInt(eventCard.Cost_Social);
-                    const costMoney = Logic.getSafeInt(eventCard.Cost_Money);
-
-                    return `<div class="game-card">
-                        <div class="card-header">
-                            <span>${eventCard.Name || eventCard.ID}</span>
-                            <span class="card-cost">${costTime} blocks</span>
-                        </div>
-                        <p class="card-flavor">${eventCard.Description || 'A random event affects your semester.'}</p>
-                        <div class="pill-container">
-                            ${costHealth > 0 ? `<span class="stat-pill" style="background: rgba(244, 67, 54, 0.2); color: var(--accent-red);">-${costHealth} Health</span>` : ''}
-                            ${costStress > 0 ? `<span class="stat-pill" style="background: rgba(244, 67, 54, 0.2); color: var(--accent-red);">+${costStress} Stress</span>` : ''}
-                            ${costSocial > 0 ? `<span class="stat-pill" style="background: rgba(244, 67, 54, 0.2); color: var(--accent-red);">-${costSocial} Social</span>` : ''}
-                            ${costMoney > 0 ? `<span class="stat-pill" style="background: rgba(244, 67, 54, 0.2); color: var(--accent-red);">-₹${costMoney}</span>` : ''}
-                        </div>
-                    </div>`;
-                },
-
-                renderOpportunity: function(tabData, activeTab) {
-                    const tabNames = { projects: 'Projects', interns: 'Internships', pors: 'Positions' };
-                    return `
-                        <h2>Opportunities</h2>
-                        <div class="tabs">
-                            <button class="tab-btn ${activeTab === 'projects' ? 'active' : ''}" onclick="CampusSimulator.switchTab('projects')">📋 Projects</button>
-                            <button class="tab-btn ${activeTab === 'interns' ? 'active' : ''}" onclick="CampusSimulator.switchTab('interns')">🏢 Internships</button>
-                            <button class="tab-btn ${activeTab === 'pors' ? 'active' : ''}" onclick="CampusSimulator.switchTab('pors')">🎓 Positions</button>
-                        </div>
-                        <div class="card-grid">
-                            ${tabData.map(item => item.html).join('')}
-                        </div>
-                    `;
-                },
-
-                renderAction: function(locations, blocksRemaining) {
-                    return `<div style="width: 100%; max-width: 600px;">
-                        <h2>Locations</h2>
-                        ${locations.map(loc => {
-                            const cost = Logic.getSafeInt(loc.Cost_Time);
-                            const isAffordable = blocksRemaining >= cost;
-                            return `<div class="game-card ${isAffordable ? 'clickable' : 'disabled'}" onclick="${isAffordable ? `CampusSimulator.takeLocationAction('${loc.ID}')` : ''}" style="cursor: ${isAffordable ? 'pointer' : 'not-allowed'};">
-                                <div class="card-header">
-                                    <span>${loc.Location_Name}</span>
-                                    <span class="card-cost">${cost} blocks</span>
-                                </div>
-                                <p class="card-flavor">${loc.Description || 'A place to spend time.'}</p>
-                            </div>`;
-                        }).join('')}
-                    </div>`;
-                },
-
-                components: {
-                    oppCard: function(card, isLocked, isAffordable, reqHTML) {
-                        const cost = Logic.getSafeInt(card.Cost_Time);
-                        const costHealth = Logic.getSafeInt(card.Cost_Health);
-                        const rewardHealth = Logic.getSafeInt(card.Reward_Health);
-
-                        return `
-                            <div class="opp-card ${isLocked ? 'locked' : ''}">
-                                <div>
-                                    <div style="font-weight: bold; font-size: 1.05em;">${card['Card Name'] || card.ID}</div>
-                                    <div style="font-size: 0.9em; color: var(--text-muted); margin-top: 5px;">Cost: <span style="color: var(--accent-blue);">${cost} blocks</span></div>
-                                    <div style="font-size: 0.85em; margin-top: 8px; line-height: 1.4;">${card.Description || 'An opportunity awaits.'}</div>
-                                    ${reqHTML ? `<div>${reqHTML}</div>` : ''}
-                                </div>
-                                <button class="draft-btn" onclick="CampusSimulator.draftCard('${card.ID}')" ${isLocked || !isAffordable ? 'disabled' : ''}>
-                                    ${isLocked ? '🔒 Locked' : !isAffordable ? '❌ Not Enough Time' : '✅ Draft'}
-                                </button>
-                            </div>
-                        `;
-                    }
-                }
-            };
-
-            // --- 4. GAME LOGIC LAYER ---
-            const Logic = {
-                validateCard: function(card) {
-                    return card && card.ID;
-                },
-
-                getSafeInt: function(val) {
-                    return parseInt(val) || 0;
-                },
-
-                addLog: function(resultObject) {
-                    if (!resultObject) return;
-                    state.logs.unshift(resultObject);
-                    if (state.logs.length > 20) state.logs.pop(); // Keep log size manageable
-                },
-
-                clampStats: function() {
-                    state.stats.Health = Math.max(0, Math.min(state.stats.Health, 200));
-                    state.stats.Stress = Math.max(0, Math.min(state.stats.Stress, 200));
-                    state.stats.Social = Math.max(0, Math.min(state.stats.Social, 200));
-                    state.stats.Money = Math.max(0, state.stats.Money);
-                    state.stats.Study = Math.max(0, state.stats.Study);
-                },
-
-                deductCosts: function(timeCost) {
-                    state.blocksRemaining -= Logic.getSafeInt(timeCost);
-                },
-
-                applySurvivalStats: function(card) {
-                    state.stats.Health += Logic.getSafeInt(card.Reward_Health) - Logic.getSafeInt(card.Cost_Health);
-                    state.stats.Stress += Logic.getSafeInt(card.Cost_Stress) - Logic.getSafeInt(card.Reward_Stress);
-                    state.stats.Social += Logic.getSafeInt(card.Reward_Social) - Logic.getSafeInt(card.Cost_Social);
-                    state.stats.Money += Logic.getSafeInt(card.Reward_Money) - Logic.getSafeInt(card.Cost_Money);
-                },
-
-                applyResumeStats: function(card) {
-                    if (card['Card Type'] === 'Project') state.resume.Projects++;
-                    if (card['Card Type'] === 'Internship') state.resume.Internships++;
-                    if (card['Card Type'] === 'POR') state.resume.Positions++;
-                },
-
-                processCardEffect: function(card, actionType = 'neutral') {
-                    if (!this.validateCard(card)) return null;
-
-                    const timeCost = this.getSafeInt(card.Cost_Time);
-                    this.deductCosts(card.Cost_Time);
-                    this.applySurvivalStats(card);
-                    this.applyResumeStats(card);
-                    this.clampStats();
-
-                    // Calculate net changes for the log
-                    const netHealth = this.getSafeInt(card.Reward_Health) - this.getSafeInt(card.Cost_Health);
-                    const netStress = this.getSafeInt(card.Reward_Stress) - this.getSafeInt(card.Cost_Stress);
-                    const netSocial = this.getSafeInt(card.Reward_Social) - this.getSafeInt(card.Cost_Social);
-                    const netMoney  = this.getSafeInt(card.Reward_Money)  - this.getSafeInt(card.Cost_Money);
-                    const netStudy  = this.getSafeInt(card.Reward_Study)  - this.getSafeInt(card.Cost_Study);
-
-                    const effects = {};
-                    if (timeCost !== 0) effects.Time = -timeCost;
-                    if (netHealth !== 0) effects.Health = netHealth;
-                    if (netStress !== 0) effects.Stress = netStress;
-                    if (netSocial !== 0) effects.Social = netSocial;
-                    if (netMoney !== 0) effects.Money = netMoney;
-                    if (netStudy !== 0) effects.Study = netStudy;
-
-                    let icon = '📌';
-                    if (actionType === 'location') icon = '📍';
-                    if (actionType === 'friction') icon = '⚡';
-                    if (actionType === 'opportunity') icon = '💼';
-
-                    return {
-                        type: actionType,
-                        icon: icon,
-                        title: card['Card Name'] || card.Location_Name || card.ID,
-                        effects: effects,
-                        semester: state.semester,
-                        turn: state.turn
-                    };
-                },
-
-                drawRandomFriction: function() {
-                    const validEvents = db.friction.filter(e => {
-                        const start = parseInt(e.Sem_Start) || 1;
-                        const end = parseInt(e.Sem_End) || 8;
-                        return state.semester >= start && state.semester <= end;
-                    });
-                    if (validEvents.length === 0) return null;
-                    return validEvents[Math.floor(Math.random() * validEvents.length)];
-                },
-
-                calculateEndSemesterCPI: function() {
-                    const baseCPI = 7.0;
-                    const resumeBonus = (state.resume.Projects * 0.2) + (state.resume.Internships * 0.3) + (state.resume.Positions * 0.1);
-                    const stressModifier = state.stats.Stress > 100 ? -0.5 : 0;
-                    state.stats.CPI = Math.max(0, Math.min(10, baseCPI + resumeBonus + stressModifier));
-                },
-
-                evaluateRequirements: function(reqString) {
-                    if (!reqString) return { locked: false, html: '' };
-                    
-                    let isLocked = false;
-                    let html = '';
-                    
-                    reqString.split(',').forEach(req => {
-                        req = req.trim();
-                        if (!req) return;
-                        
-                        let met = false;
-                        if (state.history.includes(req)) met = true;
-
-                        if (!met) isLocked = true;
-                        html += `<span class="req-pill ${met ? 'met' : ''}">${req}</span>`;
-                    });
-
-                    return { locked: isLocked, html: html };
-                },
-
-                draftCard: function(cardId, cardData) {
-                    if (!this.validateCard(cardData)) return false;
-                    
-                    // Double check affordability
-                    if (state.blocksRemaining < this.getSafeInt(cardData.Cost_Time)) return false;
-
-                    return true;
-                }
-            };
-
-            // --- 5. PHASE CONTROLLER (The "Traffic Cop") ---
+        
             const Controller = {
                 syncHUD: function() {
                     UI.updateHUD(state.stats, state.resume, state.turn, state.semester, state.blocksRemaining);
@@ -461,16 +185,16 @@
             async function initGame() {
                 try {
                     const [tl, fric, por, intern, proj, loc, place, soc] = await Promise.all([
-                        loadCSV('timeline_population_-_timeline_(2).csv'),
-                        loadCSV('timeline_population_-_Friction_Events_(1).csv'),
-                        loadCSV('timeline_population_-_POR_(1).csv'),
-                        loadCSV('timeline_population_-_intern.csv'),
-                        loadCSV('timeline_population_-_proj_(1).csv'),
-                        loadCSV('timeline_population_-_loc_(2).csv'),
-                        loadCSV('timeline_population_-_placement_(1).csv'),
-                        loadCSV('Social_Connect.csv')
-                    ]);
-
+    loadCSV('csv/timeline.csv'),
+    loadCSV('csv/friction.csv'),
+    loadCSV('csv/POR.csv'),
+    loadCSV('csv/internships.csv'),
+    loadCSV('csv/projects.csv'),
+    loadCSV('csv/locations.csv'),
+    loadCSV('csv/placement.csv'),
+    loadCSV('csv/social.csv')
+    ]);
+                    
                     db.timeline = tl; db.friction = fric; db.por = por; db.intern = intern;
                     db.proj = proj; db.locations = loc; db.placement = place; db.social = soc;
 
