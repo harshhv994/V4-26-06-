@@ -2,6 +2,7 @@
                 syncHUD: function() {
                     UI.updateHUD(state.stats, state.resume, state.turn, state.semester, state.blocksRemaining);
                     UI.updateEventLog(state.logs);
+                    UI.updateNetworkPanel(state.network); // <--- ADD THIS LINE
                 },
 
                 startNarrative: function() {
@@ -90,6 +91,26 @@
                     
                     const result = Logic.processCardEffect(loc, 'location');
                     Logic.addLog(result);
+
+                    // --- CHECK FOR SOCIAL ENCOUNTER ---
+                    const encounter = Logic.checkSocialEncounter();
+                    if (encounter) {
+                        const conn = Logic.acquireSocialConnection(encounter);
+                        
+                        // Rich Narrative Log
+                        Logic.addLog({
+                            type: 'opportunity', // Gold color
+                            icon: '🤝',
+                            title: `${conn.name} joined your network`,
+                            desc: `📍 While spending time at ${loc.Location_Name}, you bumped into someone new.<br><span style="color: var(--text-muted); font-size: 0.9em; font-style: italic;">Passive: ${conn.passiveDesc}</span>`,
+                            effects: { Social: 1 }, 
+                            semester: state.semester,
+                            turn: state.turn
+                        });
+                        
+                        state.stats.Social += 1;
+                        Logic.clampStats();
+                    }
                     
                     this.startAction(); 
                     this.syncHUD();

@@ -51,6 +51,24 @@
 
                     document.getElementById('event-log').innerHTML = logHTML;
                 },
+                
+                updateNetworkPanel: function(network) {
+                    const container = document.getElementById('active-connections');
+                    if (!container) return; // Safety check
+                    
+                    if (network.length === 0) {
+                        container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9em; font-style: italic;">No connections yet. Visit locations to meet people.</p>`;
+                        return;
+                    }
+
+                    container.innerHTML = network.map(conn => `
+                        <div style="background: #2a2a2a; border-left: 3px solid var(--accent-green); padding: 10px; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                            <div style="font-weight: bold; font-size: 1.05em; color: var(--text-main);">🤝 ${conn.name}</div>
+                            <div style="font-size: 0.75em; color: var(--accent-blue); text-transform: uppercase; margin-top: 3px; letter-spacing: 0.5px;">${conn.category}</div>
+                            <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 6px; line-height: 1.3;">${conn.passiveDesc}</div>
+                        </div>
+                    `).join('');
+                },
 
                 updateNarrativeSidePanel: function(phase, vibe) {
                     document.getElementById('current-phase').textContent = phase;

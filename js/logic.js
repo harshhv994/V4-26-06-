@@ -116,10 +116,44 @@
 
                 draftCard: function(cardId, cardData) {
                     if (!this.validateCard(cardData)) return false;
-                    
-                    // Double check affordability
                     if (state.blocksRemaining < this.getSafeInt(cardData.Cost_Time)) return false;
-
                     return true;
+                }, // <--- COMMA ADDED HERE
+
+                // --- PHASE 4: ORGANIC SOCIAL ENCOUNTERS ---
+                checkSocialEncounter: function() {
+                    // Use config variable (Defaults to 0.25 in state.js)
+                    if (Math.random() > GAME_CONFIG.SOCIAL_ENCOUNTER_CHANCE) return null;
+
+                    const eligible = db.social.filter(card => {
+                        const start = parseInt(card.Sem_Start) || 1;
+                        const end = parseInt(card.Sem_End) || 8;
+                        const inSem = state.semester >= start && state.semester <= end;
+                        
+                        // Prevent meeting the same person twice
+                        const alreadyOwned = state.network.some(n => n.id === card.ID);
+                        return inSem && !alreadyOwned;
+                    });
+
+                    if (eligible.length === 0) return null;
+                    return eligible[Math.floor(Math.random() * eligible.length)];
+                },
+
+                acquireSocialConnection: function(card) {
+                    // Store the rich object for future passive use
+                    const newConnection = {
+                        id: card.ID,
+                        name: card['Card Name'] || card.ID,
+                        category: card.Category || 'General',
+                        trigger: card.Trigger,
+                        triggerValue: card.Trigger_Value,
+                        effect: card.Effect,
+                        effectValue: card.Effect_Value,
+                        frequency: card.Frequency,
+                        passiveDesc: card.Passive_Effect,
+                        semesterAcquired: state.semester
+                    };
+                    state.network.push(newConnection);
+                    return newConnection;
                 }
-            };
+            }; // <--- CLOSING BRACE FOR LOGIC OBJECT

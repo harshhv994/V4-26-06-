@@ -1,3 +1,8 @@
+// --- 0. GAME CONFIGURATION ---
+const GAME_CONFIG = {
+    SOCIAL_ENCOUNTER_CHANCE: 0.25 // 25% chance to meet someone at a location
+};
+
 // --- 1. CORE DATABASE & PHASE CONSTANTS ---
 const db = {
     timeline: [], friction: [], por: [], intern: [], proj: [], locations: [], placement: [], social: []
@@ -20,5 +25,9 @@ const state = {
     blocksRemaining: 12,
     history: [],
     logs: [],
-    activeTab: 'projects'
+    activeTab: 'projects',
+    
+    // --- PASSIVE ENGINE TRACKERS ---
+    network: [],           // Array of acquired Social Connections (stored as rich objects)
+    passiveCooldowns: {}   // Tracks frequency { cardId: { turn: X, semester: Y } }
 };
