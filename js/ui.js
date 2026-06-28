@@ -51,7 +51,7 @@
 
                     document.getElementById('event-log').innerHTML = logHTML;
                 },
-                
+
                 updateNetworkPanel: function(network) {
                     const container = document.getElementById('active-connections');
                     if (!container) return; // Safety check
@@ -78,6 +78,116 @@
                 updateBoard: function(html) {
                     document.getElementById('board-panel').innerHTML = html;
                 },
+                
+                renderPlacementResume: function(resume) {
+        return `
+            <div style="width: 100%; max-width: 600px; margin: 0 auto; text-align: center;">
+                <h2 style="color: var(--accent-gold); font-size: 1.8em; margin-bottom: 5px;">Your Resume Before Placement Season</h2>
+                <p style="color: var(--text-muted); margin-bottom: 20px;">Returning from your summer internship, this is the profile you've built.</p>
+                
+                <div class="game-card" style="text-align: left; background: #1a1a1a; padding: 25px;">
+                    <div style="font-size: 1.2em; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px;">
+                        <strong>Academic Performance</strong><br>
+                        <span style="color: var(--accent-blue);">Cumulative Performance Index (CPI): ${resume.cpi.toFixed(2)}</span>
+                    </div>
+                    <div style="font-size: 1.1em; margin-bottom: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div><strong>💼 Internships:</strong> ${resume.internships}</div>
+                        <div><strong>📋 Projects:</strong> ${resume.projects}</div>
+                        <div><strong>🎓 PORs:</strong> ${resume.por}</div>
+                    </div>
+                    <div style="font-size: 1.1em; border-top: 1px solid #333; padding-top: 15px; margin-top: 10px;">
+                        <strong>Hidden Competencies</strong>
+                        <div style="margin-top: 5px; color: var(--text-muted); line-height: 1.6;">
+                            Algorithms & Data Structures: <span style="color: var(--text-main); font-weight: bold;">${resume.algo}</span><br>
+                            Research & Analysis: <span style="color: var(--text-main); font-weight: bold;">${resume.res}</span><br>
+                            Product & Design: <span style="color: var(--text-main); font-weight: bold;">${resume.prod}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+
+    renderPlacementFit: function(results) {
+        const top5 = results.slice(0, 5);
+        const fitHTML = top5.map(res => {
+            const statusColor = res.eligible ? 'var(--accent-green)' : (res.match >= 75 ? 'var(--accent-gold)' : 'var(--accent-red)');
+            const icon = res.eligible ? '✓' : '⚠';
+            const statusText = res.eligible ? 'Eligible' : (res.match >= 75 ? 'Nearly Eligible' : 'Not Eligible');
+            const missingText = res.missing.length > 0 ? `<br><span style="font-size: 0.85em; color: var(--text-muted);">Missing: ${res.missing.join(', ')}</span>` : '';
+            
+            // Generate realistic Example Recruiters based on Role keywords
+            let recruiters = "Top Industry Leaders";
+            const name = res.company['Card Name'].toLowerCase();
+            if (name.includes('sde') || name.includes('software')) recruiters = "Microsoft, Google, Atlassian, Rubrik";
+            else if (name.includes('quant')) recruiters = "Jane Street, Tower Research, Optiver";
+            else if (name.includes('consulting')) recruiters = "McKinsey, BCG, Bain";
+            else if (name.includes('product') || name.includes('apm')) recruiters = "Uber, Flipkart, Swiggy";
+            else if (name.includes('ai') || name.includes('ml')) recruiters = "OpenAI, Google DeepMind, Amazon";
+
+            return `
+                <div style="background: #2a2a2a; border-left: 3px solid ${statusColor}; padding: 12px; border-radius: 6px; margin-bottom: 12px; text-align: left;">
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.1em;">
+                        <span>${icon} ${res.company['Card Name']}</span>
+                        <span style="color: ${statusColor};">${res.match}% Match</span>
+                    </div>
+                    <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 4px;">Typical Recruiters: ${recruiters}</div>
+                    <div style="font-size: 0.9em; color: var(--accent-blue); margin-top: 6px; border-top: 1px solid #333; padding-top: 6px;">
+                        Est. CTC: ${res.company['Est. CTC']} &nbsp;|&nbsp; <span style="color: ${statusColor};">${statusText}</span>
+                        ${missingText}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div style="width: 100%; max-width: 600px; margin: 0 auto; text-align: center;">
+                <h2 style="color: var(--accent-gold); font-size: 1.8em; margin-bottom: 5px;">Where Do You Stand?</h2>
+                <p style="color: var(--text-muted); margin-bottom: 20px;">Based on the choices you made throughout college, these are the career paths that best match your profile.</p>
+                ${fitHTML}
+            </div>
+        `;
+    },
+
+    renderPlacementOutcome: function(bestCompany) {
+        if (bestCompany) {
+            return `
+                <div style="width: 100%; max-width: 600px; margin: 0 auto; text-align: center;">
+                    <h2 style="color: var(--accent-green); font-size: 2em; margin-bottom: 5px;">Campus Placement Result</h2>
+                    <p style="color: var(--text-main); font-size: 1.1em; margin-bottom: 20px;">Congratulations on securing your future!</p>
+                    
+                    <div class="game-card" style="text-align: center; border-color: var(--accent-green); padding: 30px;">
+                        <div style="font-size: 3em; margin-bottom: 10px;">🎉</div>
+                        <div style="font-size: 1.3em; font-weight: bold; margin-bottom: 5px;">Profile: ${bestCompany['Card Name']}</div>
+                        <div style="font-size: 1.2em; font-weight: bold; color: var(--accent-gold); margin-bottom: 5px;">Estimated CTC: ${bestCompany['Est. CTC']}</div>
+                        
+                        <div style="color: var(--text-muted); margin-top: 15px; font-style: italic; line-height: 1.5;">
+                            Your accumulated profile, strategic internships, and hard work over the last six semesters made you a prime candidate for this role.
+                        </div>
+                        <div style="margin-top: 20px; font-weight: bold; color: var(--accent-blue);">Status: Joining after graduation</div>
+                    </div>
+                </div>
+            `;
+        } else {
+            return `
+                <div style="width: 100%; max-width: 600px; margin: 0 auto; text-align: center;">
+                    <h2 style="color: var(--accent-red); font-size: 2em; margin-bottom: 5px;">Placement Unsuccessful</h2>
+                    
+                    <div class="game-card" style="text-align: center; border-color: var(--accent-red); padding: 30px; margin-top: 20px;">
+                        <div style="font-size: 3em; margin-bottom: 10px;">📉</div>
+                        <div style="color: var(--text-main); font-size: 1.1em; margin-bottom: 15px;">
+                            Unfortunately, you did not secure a campus placement.
+                        </div>
+                        <div style="color: var(--text-muted); font-style: italic; line-height: 1.5;">
+                            Your current profile did not fully satisfy the stringent requirements of any participating companies.
+                            <br><br>
+                            However, your journey does not end here. You may still pursue off-campus opportunities, research, entrepreneurship, or higher studies.
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    },
 
                 renderNarrative: function(phase, psychology, poetic) {
                     return `<div class="game-card">

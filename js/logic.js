@@ -155,5 +155,110 @@
                     };
                     state.network.push(newConnection);
                     return newConnection;
-                }
+                }, 
+
+                // ==========================================
+                // --- PHASE 7: REFLECTIVE PLACEMENT ENGINE ---
+                // ==========================================
+
+                getRichResume: function() {
+                    let algo = 0, res = 0, prod = 0;
+                    const allCards = [...db.proj, ...db.intern, ...db.por];
+                    
+                    state.history.forEach(id => {
+                        const card = allCards.find(c => c.ID === id);
+                        if (card) {
+                            algo += this.getSafeInt(card.Reward_Algo);
+                            res += this.getSafeInt(card.Reward_Res);
+                            prod += this.getSafeInt(card.Reward_Prod);
+                        }
+                    });
+                    
+                    return { 
+                        cpi: state.stats.CPI || 0, 
+                        algo: algo, 
+                        res: res, 
+                        prod: prod, 
+                        por: state.resume.Positions,
+                        projects: state.resume.Projects,
+                        internships: state.resume.Internships
+                    };
+                },
+
+                evaluateAllPlacements: function() {
+                    const resume = this.getRichResume();
+                    
+                    const results = db.placement.map(company => {
+                        const reqString = company.Req_Prerequisite;
+                        let isEligible = true;
+                        let missing = [];
+                        let totalScore = 0;
+                        
+                        if (!reqString || reqString === 'NaN') {
+                            return { company, match: 100, eligible: true, missing: [] };
+                        }
+                        
+                        const reqs = reqString.split('|').map(r => r.trim()).filter(r => r);
+                        reqs.forEach(req => {
+                            let score = 0;
+                            if (req.includes(':')) {
+                                const [key, val] = req.split(':');
+                                const needed = parseFloat(val.trim());
+                                const statKey = key.trim().toUpperCase();
+                                
+                                let actual = 0;
+                                if (statKey === 'CPI') actual = resume.cpi;
+                                else if (statKey === 'ALGO') actual = resume.algo;
+                                else if (statKey === 'POR') actual = resume.por;
+                                else if (statKey === 'RESEARCH') actual = resume.res;
+                                else if (statKey === 'PRODUCT') actual = resume.prod;
+
+                                if (actual >= needed) {
+                                    score = 1;
+                                } else {
+                                    score = needed > 0 ? (actual / needed) : 0;
+                                    missing.push(`${statKey} (Need ${needed})`);
+                                    isEligible = false;
+                                }
+                            } else if (req.toUpperCase() === 'ANY INTERN') {
+                                if (resume.internships > 0) { score = 1; }
+                                else { missing.push('Any Internship'); isEligible = false; }
+                            } else {
+                                const allCards = [...db.proj, ...db.intern, ...db.por];
+                                const hasCard = state.history.some(id => {
+                                    const c = allCards.find(card => card.ID === id);
+                                    return c && (c['Card Name'] === req || c.ID === req);
+                                });
+                                if (hasCard) { score = 1; }
+                                else { missing.push(req); isEligible = false; }
+                            }
+                            totalScore += score;
+                        });
+                        
+                        const match = reqs.length > 0 ? Math.round((totalScore / reqs.length) * 100) : 100;
+                        return { company, match, eligible: isEligible, missing };
+                    });
+
+                    // Sort descending by Match %
+                    return results.sort((a, b) => b.match - a.match);
+                },
+
+                getBestPlacementOffer: function(results) {
+                    const eligible = results.filter(r => r.eligible);
+                    if (eligible.length === 0) return null;
+
+                    // Sort eligible offers by extracting the maximum CTC number (e.g. "60-144 LPA" -> 144)
+                    return eligible.sort((a, b) => {
+                        const getCTC = (str) => {
+                            const match = String(str).match(/(\d+)/g);
+                            return match ? Math.max(...match.map(Number)) : 0;
+                        };
+                        return getCTC(b.company['Est. CTC']) - getCTC(a.company['Est. CTC']);
+                    })[0].company;
+                } 
+
+
+
+
+
             }; // <--- CLOSING BRACE FOR LOGIC OBJECT

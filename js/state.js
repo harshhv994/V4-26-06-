@@ -12,7 +12,8 @@ const PHASES = {
     NARRATIVE: 'narrative',
     FRICTION: 'friction',
     OPPORTUNITY: 'opportunity',
-    ACTION: 'action'
+    ACTION: 'action',
+    PLACEMENT: 'placement' // The reflective culmination phase
 };
 
 // --- 2. GAME STATE ---
@@ -29,5 +30,6 @@ const state = {
     
     // --- PASSIVE ENGINE TRACKERS ---
     network: [],           // Array of acquired Social Connections (stored as rich objects)
-    passiveCooldowns: {}   // Tracks frequency { cardId: { turn: X, semester: Y } }
+    passiveCooldowns: {},  // Tracks frequency { cardId: { turn: X, semester: Y } }
+    placementStep: 1
 };

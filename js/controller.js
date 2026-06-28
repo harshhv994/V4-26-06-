@@ -58,6 +58,22 @@
                     const validLocs = db.locations.filter(l => (parseInt(l.Sem_Unlocked) || 1) <= state.semester);
                     UI.updateBoard(UI.renderAction(validLocs, state.blocksRemaining));
                 },
+                startPlacement: function() {
+                    UI.updateNarrativeSidePanel("Semester 7: The Reckoning", "Your summer internship has concluded. You return to campus to face the Placement Drive.");
+                    
+                    if (state.placementStep === 1) {
+                        const resume = Logic.getRichResume();
+                        UI.updateBoard(UI.renderPlacementResume(resume));
+                    } else if (state.placementStep === 2) {
+                        const results = Logic.evaluateAllPlacements();
+                        UI.updateBoard(UI.renderPlacementFit(results));
+                    } else if (state.placementStep === 3) {
+                        const results = Logic.evaluateAllPlacements();
+                        const bestCompany = Logic.getBestPlacementOffer(results);
+                        UI.updateBoard(UI.renderPlacementOutcome(bestCompany));
+                    }
+                    this.syncHUD();
+                },
 
                 advancePhase: function() {
                     switch (state.phase) {
@@ -75,11 +91,34 @@
                             break;
                         case PHASES.ACTION:
                             Logic.calculateEndSemesterCPI();
+                            
+                            // Advance the clock to the next semester
                             state.phase = PHASES.NARRATIVE;
                             state.turn++;
-                            state.semester = state.turn; // Assuming 1 turn = 1 sem for now
+                            state.semester = state.turn; 
                             state.blocksRemaining = 12;
+
+                            // INTERCEPT: After Sem 6 Action (Summer Internships) -> Start of Sem 7
+                            if (state.semester === 7) {
+                                state.phase = PHASES.PLACEMENT;
+                                state.placementStep = 1;
+                                this.startPlacement();
+                                break; 
+                            }
+
                             this.startNarrative();
+                            break;
+
+                        case PHASES.PLACEMENT:
+                            // Cycle through the 3 reflective screens
+                            if (state.placementStep < 3) {
+                                state.placementStep++;
+                                this.startPlacement();
+                            } else {
+                                // Done reflecting, formally continue into the Semester 7 Narrative
+                                state.phase = PHASES.NARRATIVE;
+                                this.startNarrative();
+                            }
                             break;
                     }
                     this.syncHUD();
