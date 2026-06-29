@@ -1,18 +1,25 @@
 // --- 3. UI LAYER (Rendering) ---
             const UI = {
                 updateHUD: function(stats, resume, turn, semester, blocks) {
+                    // Update Survival (Left Side)
                     document.getElementById('survival-stats').innerHTML = `
                         <div class="stat-box">❤️ Health: ${Math.max(0, stats.Health)}</div>
-                        <div class="stat-box">😰 Stress: ${stats.Stress}</div>
                         <div class="stat-box">👥 Social: ${stats.Social}</div>
+                        <div class="stat-box">🤯 Stress: ${stats.Stress}</div>
+                        <div class="stat-box" style="border-color: var(--accent-blue); color: var(--accent-blue);">📚 Study: ${stats.Study}</div>
                         <div class="stat-box">💵 Money: ₹${stats.Money}</div>
                     `;
+                    
+                    // Update Resume (Right Side)
                     document.getElementById('resume-stats').innerHTML = `
-                        <div class="stat-box">📊 Projects: ${resume.Projects}</div>
-                        <div class="stat-box">🏢 Internships: ${resume.Internships}</div>
-                        <div class="stat-box">🎓 Positions: ${resume.Positions}</div>
-                        <div class="stat-box">📈 CPI: ${(stats.CPI || 0).toFixed(2)}</div>
+                        <div class="stat-box" style="border-color: var(--accent-gold); color: var(--accent-gold);">📈 CPI: ${(stats.CPI || 0).toFixed(2)}</div>
+                        <div class="stat-box">🏅 POR: ${resume.Positions}</div>
+                        <div class="stat-box">🔬 Research: ${resume.Research}</div>
+                        <div class="stat-box">🎨 Product: ${resume.Product}</div>
+                        <div class="stat-box">💼 Work: ${resume.Internships}</div>
                     `;
+                    
+                    // Update Time Panel
                     document.getElementById('time-tracker').innerHTML = `Sem ${semester} | Turn ${turn} | Blocks: ${blocks}`;
                 },
 
@@ -78,7 +85,93 @@
                 updateBoard: function(html) {
                     document.getElementById('board-panel').innerHTML = html;
                 },
+                renderInterlude: function(interns) {
+        const internCards = interns.map(card => {
+            const reqEval = Logic.evaluateRequirements(card.Req_Prerequisite);
+            const btnState = reqEval.locked ? 'disabled' : '';
+            const btnText = reqEval.locked ? 'Locked' : 'Select';
+            
+            return `
+                <div class="opp-card ${reqEval.locked ? 'locked' : ''}">
+                    <div>
+                        <div style="font-weight: bold; font-size: 1.1em; color: var(--accent-gold);">${card['Card Name'] || card.ID}</div>
+                        <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 5px;">Category: ${card.Category || 'Internship'}</div>
+                        <div style="margin-top: 10px; border-top: 1px solid #444; padding-top: 10px;">${reqEval.html}</div>
+                    </div>
+                    <button class="draft-btn" ${btnState} onclick="CampusSimulator.selectInterlude('${card.ID}')">
+                        ${reqEval.locked ? '🔒' : '✅'} ${btnText}
+                    </button>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="color: var(--accent-gold); font-size: 1.8em;">🏢 SPO Internship Drive</h2>
+                <p style="color: var(--text-muted);">Your profile is your currency. Choose one path for the summer.</p>
+            </div>
+            <div class="card-grid">
+                ${internCards}
+                <div class="opp-card" style="border-color: var(--accent-blue);">
+                    <div>
+                        <div style="font-weight: bold; font-size: 1.1em; color: var(--accent-blue);">Chill at Home</div>
+                        <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 5px;">Take a complete break.</div>
+                        <div style="margin-top: 10px; font-size: 0.9em; color: var(--accent-green);">+50 Health, -50 Stress</div>
+                    </div>
+                    <button class="draft-btn" style="background: var(--accent-blue);" onclick="CampusSimulator.selectInterlude('SKIP')">
+                        🏠 Go Home
+                    </button>
+                </div>
+            </div>
+        `;
+    },
+    renderSummer: function() {
+        return `
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="color: var(--accent-gold); font-size: 1.8em;">☀️ The Summer Divide</h2>
+                <p style="color: var(--text-muted);">Campus is empty. How will you spend your final summer before placements?</p>
+            </div>
+            <div class="card-grid">
                 
+                <!-- Option 1: Internship -->
+                <div class="opp-card" style="border-color: var(--accent-gold);">
+                    <div>
+                        <div style="font-weight: bold; font-size: 1.1em; color: var(--accent-gold);">🏢 Complete Internship</div>
+                        <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 5px;">Execute your corporate or research role.</div>
+                        <div style="margin-top: 10px; font-size: 0.9em; color: var(--accent-green);">+1 Work Exp, +₹2000, +30 Stress</div>
+                    </div>
+                    <button class="draft-btn" style="background: var(--accent-gold); color: black;" onclick="CampusSimulator.selectSummer('INTERN')">
+                        💼 Go to Work
+                    </button>
+                </div>
+
+                <!-- Option 2: Campus Project -->
+                <div class="opp-card" style="border-color: var(--accent-blue);">
+                    <div>
+                        <div style="font-weight: bold; font-size: 1.1em; color: var(--accent-blue);">🔬 Summer Project</div>
+                        <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 5px;">Stay in empty hostels and work with a Prof.</div>
+                        <div style="margin-top: 10px; font-size: 0.9em; color: var(--accent-green);">+2 Research, +15 Study, -20 Social</div>
+                    </div>
+                    <button class="draft-btn" style="background: var(--accent-blue);" onclick="CampusSimulator.selectSummer('PROJECT')">
+                        📚 Stay on Campus
+                    </button>
+                </div>
+
+                <!-- Option 3: Chill at Home -->
+                <div class="opp-card" style="border-color: var(--accent-green);">
+                    <div>
+                        <div style="font-weight: bold; font-size: 1.1em; color: var(--accent-green);">🏠 Chill at Home</div>
+                        <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 5px;">Mom's food and absolute rest.</div>
+                        <div style="margin-top: 10px; font-size: 0.9em; color: var(--accent-green);">+100 Health, -100 Stress</div>
+                    </div>
+                    <button class="draft-btn" style="background: var(--accent-green);" onclick="CampusSimulator.selectSummer('HOME')">
+                        ✈️ Pack Bags
+                    </button>
+                </div>
+            </div>
+        `;
+    },
+
                 renderPlacementResume: function(resume) {
         return `
             <div style="width: 100%; max-width: 600px; margin: 0 auto; text-align: center;">
@@ -200,23 +293,40 @@
                 renderFriction: function(eventCard) {
                     if (!eventCard) return '<div class="game-card"><p>No friction events for this semester.</p></div>';
                     
-                    const costTime = Logic.getSafeInt(eventCard.Cost_Time);
-                    const costHealth = Logic.getSafeInt(eventCard.Cost_Health);
-                    const costStress = Logic.getSafeInt(eventCard.Cost_Stress);
-                    const costSocial = Logic.getSafeInt(eventCard.Cost_Social);
-                    const costMoney = Logic.getSafeInt(eventCard.Cost_Money);
+                    // Helper to build beautiful, dynamic stat pills
+                    const buildPill = (val, stat, isBadIfPositive) => {
+                        if (val === 0) return '';
+                        const isPositive = val > 0;
+                        const sign = isPositive ? '+' : '';
+                        
+                        // Stress is bad if positive. Everything else is good if positive.
+                        let isGood = isBadIfPositive ? !isPositive : isPositive;
+                        
+                        const colorStr = isGood ? 'var(--accent-green)' : 'var(--accent-red)';
+                        const bgStr = isGood ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)';
+                        
+                        return `<span class="stat-pill" style="background: ${bgStr}; color: ${colorStr}; border: 1px solid ${colorStr};">${sign}${val} ${stat}</span>`;
+                    };
+
+                    const t = Logic.getSafeInt(eventCard.Cost_Time);
+                    const h = Logic.getSafeInt(eventCard.Cost_Health);
+                    const s = Logic.getSafeInt(eventCard.Cost_Study);
+                    const soc = Logic.getSafeInt(eventCard.Cost_Social);
+                    const m = Logic.getSafeInt(eventCard.Cost_Money);
+                    const str = Logic.getSafeInt(eventCard.Cost_Stress);
 
                     return `<div class="game-card">
                         <div class="card-header">
                             <span>${eventCard.Name || eventCard.ID}</span>
-                            <span class="card-cost">${costTime} blocks</span>
                         </div>
-                        <p class="card-flavor">${eventCard.Description || 'A random event affects your semester.'}</p>
+                        <p class="card-flavor" style="margin-top: 8px;">${eventCard.Flavor_Text || eventCard.Description || 'A random event affects your semester.'}</p>
                         <div class="pill-container">
-                            ${costHealth > 0 ? `<span class="stat-pill" style="background: rgba(244, 67, 54, 0.2); color: var(--accent-red);">-${costHealth} Health</span>` : ''}
-                            ${costStress > 0 ? `<span class="stat-pill" style="background: rgba(244, 67, 54, 0.2); color: var(--accent-red);">+${costStress} Stress</span>` : ''}
-                            ${costSocial > 0 ? `<span class="stat-pill" style="background: rgba(244, 67, 54, 0.2); color: var(--accent-red);">-${costSocial} Social</span>` : ''}
-                            ${costMoney > 0 ? `<span class="stat-pill" style="background: rgba(244, 67, 54, 0.2); color: var(--accent-red);">-₹${costMoney}</span>` : ''}
+                            ${buildPill(t, 'Time', false)}
+                            ${buildPill(h, 'Health', false)}
+                            ${buildPill(s, 'Study', false)}
+                            ${buildPill(soc, 'Social', false)}
+                            ${buildPill(m, 'Money', false)}
+                            ${buildPill(str, 'Stress', true)}
                         </div>
                     </div>`;
                 },

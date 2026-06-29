@@ -14,6 +14,76 @@
                     UI.updateNarrativeSidePanel(`${currentData.Semester}: ${currentData.Phase}`, currentData['the vibe']);
                     UI.updateBoard(UI.renderNarrative(currentData.Phase, currentData['the psychology '], currentData.Poetic));
                 },
+                startInterlude: function() {
+                    UI.updateNarrativeSidePanel("The Intern Selection", "The SPO portal is live. Evaluate your options based on the resume you have built.");
+                    // Send all available internships to the UI
+                    UI.updateBoard(UI.renderInterlude(db.intern));
+                },
+
+                handleInterludeSelection: function(cardId) {
+                    if (cardId === 'SKIP') {
+                        state.stats.Health = Math.min(200, state.stats.Health + 50);
+                        state.stats.Stress = Math.max(0, state.stats.Stress - 50);
+                        Logic.clampStats();
+                        Logic.addLog({
+                            type: 'neutral', icon: '🏠', title: 'Summer at Home',
+                            desc: 'You took a break, recovered your health, and lowered your stress.',
+                            effects: { Health: 50, Stress: -50 },
+                            semester: state.semester, turn: state.turn
+                        });
+                    } else {
+                        const card = db.intern.find(c => c.ID === cardId);
+                        if (!card) return;
+                        const result = Logic.processCardEffect(card, 'opportunity');
+                        Logic.addLog(result);
+                        state.history.push(card.ID);
+                    }
+                    
+                    // Fast forward directly to Turn 6 (Semester 5)
+                    state.turn = 6;
+                    state.semester = 5;
+                    state.blocksRemaining = 12;
+                    state.phase = PHASES.NARRATIVE;
+                    
+                    this.startNarrative();
+                    this.syncHUD();
+                },
+                startSummer: function() {
+                    UI.updateNarrativeSidePanel("The Summer Divide", "Empty hostels, quiet campus roads, or a new city skyline.");
+                    UI.updateBoard(UI.renderSummer());
+                },
+
+                handleSummerSelection: function(choice) {
+                    if (choice === 'INTERN') {
+                        state.stats.Money += 2000;
+                        state.stats.Stress = Math.min(200, state.stats.Stress + 30);
+                        state.resume.Internships += 1;
+                        Logic.addLog({ type: 'neutral', icon: '💼', title: 'Summer Internship', desc: 'Gained work experience.', effects: { Money: 2000, Stress: 30 }, semester: state.semester, turn: state.turn });
+                    } else if (choice === 'PROJECT') {
+                        state.stats.Study += 15;
+                        state.stats.Social = Math.max(0, state.stats.Social - 20);
+                        state.resume.Research += 2;
+                        Logic.addLog({ type: 'neutral', icon: '🔬', title: 'Summer Project', desc: 'Built your research profile.', effects: { Study: 15, Social: -20 }, semester: state.semester, turn: state.turn });
+                    } else if (choice === 'HOME') {
+                        state.stats.Health = Math.min(200, state.stats.Health + 100);
+                        state.stats.Stress = 0;
+                        Logic.addLog({ type: 'neutral', icon: '🏠', title: 'Chilled at Home', desc: 'Recovered from burnout.', effects: { Health: 100, Stress: -100 }, semester: state.semester, turn: state.turn });
+                    }
+                    Logic.clampStats();
+                    
+                    // Fast forward directly to Turn 9 (Semester 7)
+                    state.turn = 9;
+                    state.semester = 7;
+                    state.blocksRemaining = 12;
+                    
+                    // Instantly trigger the Placement Engine that we built!
+                    state.phase = PHASES.PLACEMENT;
+                    state.placementStep = 1;
+                    
+                    this.startPlacement();
+                    this.syncHUD();
+                },
+
 
                 startFriction: function() {
                     const eventCard = Logic.drawRandomFriction();
@@ -78,8 +148,27 @@
                 advancePhase: function() {
                     switch (state.phase) {
                         case PHASES.NARRATIVE:
+                            if (state.turn === 5) {
+                                state.phase = PHASES.INTERLUDE;
+                                this.startInterlude();
+                                break;
+                            }
+                            // HIJACK: If it's Turn 8 (The Summer), go straight to the Summer Popup
+                            if (state.turn === 8) {
+                                state.phase = PHASES.SUMMER;
+                                this.startSummer();
+                                break;
+                            }
                             state.phase = PHASES.FRICTION;
                             this.startFriction();
+                            break;
+
+                        case PHASES.INTERLUDE:
+                            // Default to skip if they bypass the UI buttons
+                            this.handleInterludeSelection('SKIP');
+                            break;
+                        case PHASES.SUMMER:
+                            this.handleSummerSelection('HOME');
                             break;
                         case PHASES.FRICTION:
                             state.phase = PHASES.OPPORTUNITY;
@@ -92,13 +181,22 @@
                         case PHASES.ACTION:
                             Logic.calculateEndSemesterCPI();
                             
-                            // Advance the clock to the next semester
+                            // Advance the clock to the next phase
                             state.phase = PHASES.NARRATIVE;
                             state.turn++;
-                            state.semester = state.turn; 
+                            
+                            // Map the 10 narrative Turns in timeline.csv to the proper 8 Semesters
+                            const turnToSem = {
+                                1: 1, 2: 2, 3: 3, 4: 4, 
+                                5: 4, // Turn 5 = Interlude (Still Sem 4 mechanically)
+                                6: 5, 7: 6, 
+                                8: 6, // Turn 8 = The Summer (Still Sem 6 mechanically)
+                                9: 7, 10: 8
+                            };
+                            state.semester = turnToSem[state.turn] || 8; 
                             state.blocksRemaining = 12;
 
-                            // INTERCEPT: After Sem 6 Action (Summer Internships) -> Start of Sem 7
+                            // INTERCEPT: After The Summer (Turn 8) -> Start of Sem 7 (Turn 9)
                             if (state.semester === 7) {
                                 state.phase = PHASES.PLACEMENT;
                                 state.placementStep = 1;

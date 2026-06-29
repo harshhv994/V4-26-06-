@@ -13,13 +13,15 @@ const PHASES = {
     FRICTION: 'friction',
     OPPORTUNITY: 'opportunity',
     ACTION: 'action',
-    PLACEMENT: 'placement' // The reflective culmination phase
+    PLACEMENT: 'placement',
+    INTERLUDE: 'interlude',
+    SUMMER: 'summer' // <--- New Summer Pop-up
 };
 
 // --- 2. GAME STATE ---
 const state = {
     stats: { Health: 100, Stress: 0, Social: 50, Money: 1000, Study: 0, CPI: 0 },
-    resume: { Projects: 0, Internships: 0, Positions: 0 },
+    resume: { Projects: 0, Internships: 0, Positions: 0, Research: 0, Product: 0, Algo: 0 },
     turn: 1,
     semester: 1,
     phase: PHASES.NARRATIVE,

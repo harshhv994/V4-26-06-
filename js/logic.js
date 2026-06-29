@@ -19,6 +19,11 @@
                     state.stats.Social = Math.max(0, Math.min(state.stats.Social, 200));
                     state.stats.Money = Math.max(0, state.stats.Money);
                     state.stats.Study = Math.max(0, state.stats.Study);
+
+                    // Dynamic CPI Calculation (Base 4.0 + (Study Points * 0.15))
+                    // Example: 20 Study Points = 7.0 CPI. Caps at 10.0.
+                    let calculatedCPI = 4.0 + (state.stats.Study * 0.15);
+                    state.stats.CPI = Math.max(0, Math.min(10.0, calculatedCPI));
                 },
 
                 deductCosts: function(timeCost) {
@@ -33,29 +38,54 @@
                 },
 
                 applyResumeStats: function(card) {
-                    if (card['Card Type'] === 'Project') state.resume.Projects++;
-                    if (card['Card Type'] === 'Internship') state.resume.Internships++;
-                    if (card['Card Type'] === 'POR') state.resume.Positions++;
+                    // Uses the exact 'Type' column to fix the tracking bug
+                    if (card.Type === 'PROJECT') state.resume.Projects++;
+                    if (card.Type === 'INTERNSHIP') state.resume.Internships++;
+                    if (card.Type === 'POR') state.resume.Positions++;
+                    
+                    // Track hidden resume stats permanently for the Top Bar
+                    state.resume.Research += this.getSafeInt(card.Reward_Res);
+                    state.resume.Product += this.getSafeInt(card.Reward_Prod);
+                    state.resume.Algo += this.getSafeInt(card.Reward_Algo);
                 },
 
                 processCardEffect: function(card, actionType = 'neutral') {
                     if (!this.validateCard(card)) return null;
 
-                    const timeCost = this.getSafeInt(card.Cost_Time);
-                    this.deductCosts(card.Cost_Time);
-                    this.applySurvivalStats(card);
+                    let timeDelta = 0, netHealth = 0, netStress = 0, netSocial = 0, netMoney = 0, netStudy = 0;
+
+                    if (card.Type === 'RANDOM') {
+                        // Friction cards use Cost columns as positive/negative Deltas
+                        timeDelta = this.getSafeInt(card.Cost_Time);
+                        netHealth = this.getSafeInt(card.Cost_Health);
+                        netStudy  = this.getSafeInt(card.Cost_Study);
+                        netSocial = this.getSafeInt(card.Cost_Social);
+                        netMoney  = this.getSafeInt(card.Cost_Money);
+                        netStress = this.getSafeInt(card.Cost_Stress);
+                    } else {
+                        // Standard cards: Net = Reward - Cost
+                        timeDelta = -this.getSafeInt(card.Cost_Time); // Costs subtract time
+                        netHealth = this.getSafeInt(card.Reward_Health) - this.getSafeInt(card.Cost_Health);
+                        netStress = this.getSafeInt(card.Cost_Stress) - this.getSafeInt(card.Reward_Stress); // Stress is bad, so Cost adds, Reward subtracts
+                        netSocial = this.getSafeInt(card.Reward_Social) - this.getSafeInt(card.Cost_Social);
+                        netMoney  = this.getSafeInt(card.Reward_Money)  - this.getSafeInt(card.Cost_Money);
+                        netStudy  = this.getSafeInt(card.Reward_Study)  - this.getSafeInt(card.Cost_Study);
+                    }
+
+                    // Apply the math to the global state
+                    state.blocksRemaining += timeDelta;
+                    state.stats.Health += netHealth;
+                    state.stats.Stress += netStress;
+                    state.stats.Social += netSocial;
+                    state.stats.Money += netMoney;
+                    state.stats.Study += netStudy;
+                    
                     this.applyResumeStats(card);
                     this.clampStats();
 
-                    // Calculate net changes for the log
-                    const netHealth = this.getSafeInt(card.Reward_Health) - this.getSafeInt(card.Cost_Health);
-                    const netStress = this.getSafeInt(card.Reward_Stress) - this.getSafeInt(card.Cost_Stress);
-                    const netSocial = this.getSafeInt(card.Reward_Social) - this.getSafeInt(card.Cost_Social);
-                    const netMoney  = this.getSafeInt(card.Reward_Money)  - this.getSafeInt(card.Cost_Money);
-                    const netStudy  = this.getSafeInt(card.Reward_Study)  - this.getSafeInt(card.Cost_Study);
-
+                    // Build effects list for the Event Log UI (only log things that actually changed)
                     const effects = {};
-                    if (timeCost !== 0) effects.Time = -timeCost;
+                    if (timeDelta !== 0) effects.Time = timeDelta;
                     if (netHealth !== 0) effects.Health = netHealth;
                     if (netStress !== 0) effects.Stress = netStress;
                     if (netSocial !== 0) effects.Social = netSocial;
@@ -95,17 +125,53 @@
                 },
 
                 evaluateRequirements: function(reqString) {
-                    if (!reqString) return { locked: false, html: '' };
+                    // 1. Handle missing, or literal "None"/"NaN" strings gracefully
+                    if (!reqString || String(reqString).trim().toUpperCase() === 'NONE' || String(reqString).trim().toUpperCase() === 'NAN') {
+                        return { locked: false, html: '' };
+                    }
                     
                     let isLocked = false;
                     let html = '';
                     
-                    reqString.split(',').forEach(req => {
+                    // 2. CSV uses '+' to separate multiple requirements (not commas)
+                    String(reqString).split('+').forEach(req => {
                         req = req.trim();
-                        if (!req) return;
+                        if (!req || req.toUpperCase() === 'NONE' || req.toUpperCase() === 'NAN') return;
                         
                         let met = false;
-                        if (state.history.includes(req)) met = true;
+                        
+                        // 3. Support dynamic stat checks like "Algo>=2" or "Social>=80"
+                        if (req.includes('>=')) {
+                            const [statRaw, valRaw] = req.split('>=');
+                            const statKey = statRaw.trim().toUpperCase();
+                            const needed = parseFloat(valRaw.trim());
+                            
+                            // Borrow getRichResume to check hidden competencies
+                            const resume = this.getRichResume ? this.getRichResume() : {
+                                cpi: state.stats.CPI || 0,
+                                algo: 0, res: 0, prod: 0, 
+                                por: state.resume.Positions
+                            };
+                            resume.social = state.stats.Social || 0; // Explicitly map Social 
+
+                            let actual = 0;
+                            if (statKey === 'CPI') actual = resume.cpi;
+                            else if (statKey === 'ALGO') actual = resume.algo;
+                            else if (statKey === 'RES') actual = resume.res;
+                            else if (statKey === 'PROD') actual = resume.prod;
+                            else if (statKey === 'POR') actual = resume.por;
+                            else if (statKey === 'SOCIAL') actual = resume.social;
+
+                            if (actual >= needed) met = true;
+                        } else {
+                            // 4. Check history for either the Card ID OR the Card Name
+                            const allCards = [...db.proj, ...db.intern, ...db.por, ...db.social];
+                            const hasCard = state.history.some(id => {
+                                const c = allCards.find(card => card.ID === id);
+                                return c && (c['Card Name'] === req || c.ID === req);
+                            });
+                            if (hasCard) met = true;
+                        }
 
                         if (!met) isLocked = true;
                         html += `<span class="req-pill ${met ? 'met' : ''}">${req}</span>`;

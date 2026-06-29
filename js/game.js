@@ -14,8 +14,12 @@
                 nextPhase: function() { Controller.advancePhase(); },
                 takeLocationAction: function(locId) { Controller.handleLocationClick(locId); },
                 switchTab: function(tabName) { Controller.handleTabSwitch(tabName); },
-                draftCard: function(cardId) { Controller.handleDraftClick(cardId); }
+                draftCard: function(cardId) { Controller.handleDraftClick(cardId); },
+                selectInterlude: function(cardId) { Controller.handleInterludeSelection(cardId); },
+                selectSummer: function(choice) { Controller.handleSummerSelection(choice); } // <--- NEW
+            
             };
+
 
         })();
 
