@@ -241,7 +241,7 @@
                     });
                     
                     return { 
-                        cpi: state.stats.CPI || 0, 
+                        cpi: state.stats.lockedCPI !== null ? state.stats.lockedCPI : (state.stats.CPI || 0), 
                         algo: algo, 
                         res: res, 
                         prod: prod, 

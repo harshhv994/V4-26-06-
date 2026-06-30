@@ -71,17 +71,23 @@
                     }
                     Logic.clampStats();
                     
+                    // SNAPSHOT THE CPI FOR PLACEMENTS
+                    state.stats.lockedCPI = state.stats.CPI; 
+                    
                     // Fast forward directly to Turn 9 (Semester 7)
                     state.turn = 9;
                     state.semester = 7;
                     state.blocksRemaining = 12;
                     
-                    // Instantly trigger the Placement Engine that we built!
-                    state.phase = PHASES.PLACEMENT;
-                    state.placementStep = 1;
-                    
-                    this.startPlacement();
+                    // Drop them into the Sem 7 Narrative (The Final Sprint)
+                    state.phase = PHASES.NARRATIVE;
+                    this.startNarrative();
                     this.syncHUD();
+
+                    // Trigger the SPO System Pop-up to warn the player
+                    setTimeout(() => {
+                        alert(`🏢 SPO OFFICIAL NOTICE:\n\nYour Placement CPI has been formally locked at ${state.stats.lockedCPI.toFixed(2)} based on your 6th-semester transcript.\n\nYou have exactly 12 blocks (Semester 7) left to aggressively acquire final PORs, Projects, and hidden skills before the Placement Drive begins!`);
+                    }, 100);
                 },
 
 
@@ -128,8 +134,13 @@
                     const validLocs = db.locations.filter(l => (parseInt(l.Sem_Unlocked) || 1) <= state.semester);
                     UI.updateBoard(UI.renderAction(validLocs, state.blocksRemaining));
                 },
+
                 startPlacement: function() {
-                    UI.updateNarrativeSidePanel("Semester 7: The Reckoning", "Your summer internship has concluded. You return to campus to face the Placement Drive.");
+                    // FIX: Force the left narrative panel to say "SPO Placement Drive"
+                    UI.updateNarrativeSidePanel("SPO Placement Drive", "Sheer adrenaline, whiteboards, rapid-fire interviews, and the golden offer letter.");
+                    
+                    // FIX: Ensure the HUD updates to show "Sem Placement" and "0 Blocks"
+                    this.syncHUD();
                     
                     if (state.placementStep === 1) {
                         const resume = Logic.getRichResume();
@@ -153,12 +164,21 @@
                                 this.startInterlude();
                                 break;
                             }
-                            // HIJACK: If it's Turn 8 (The Summer), go straight to the Summer Popup
                             if (state.turn === 8) {
                                 state.phase = PHASES.SUMMER;
                                 this.startSummer();
                                 break;
                             }
+                            
+                            // FAILSAFE: If the game tries to play Turn 10 as a normal semester, hijack it.
+                            if (state.turn === 10) {
+                                state.phase = PHASES.PLACEMENT;
+                                state.placementStep = 1;
+                                this.startPlacement();
+                                break;
+                            }
+
+                            // Otherwise, play a normal semester
                             state.phase = PHASES.FRICTION;
                             this.startFriction();
                             break;
@@ -185,21 +205,28 @@
                             state.phase = PHASES.NARRATIVE;
                             state.turn++;
                             
-                            // Map the 10 narrative Turns in timeline.csv to the proper 8 Semesters
                             const turnToSem = {
                                 1: 1, 2: 2, 3: 3, 4: 4, 
-                                5: 4, // Turn 5 = Interlude (Still Sem 4 mechanically)
+                                5: 4, // Interlude
                                 6: 5, 7: 6, 
-                                8: 6, // Turn 8 = The Summer (Still Sem 6 mechanically)
-                                9: 7, 10: 8
+                                8: 6, // Summer
+                                9: 7, 
+                                10: 8, // Placements happen before Sem 8 actually starts
+                                11: 8
                             };
                             state.semester = turnToSem[state.turn] || 8; 
                             state.blocksRemaining = 12;
 
-                            // INTERCEPT: After The Summer (Turn 8) -> Start of Sem 7 (Turn 9)
-                            if (state.semester === 7) {
+                            // INTERCEPT: After Sem 7 finishes (Turn 10 starts) -> Trigger Placements
+                            // INTERCEPT: After Sem 7 finishes (Turn 10 starts) -> Trigger Placements
+                            if (state.turn === 10) {
                                 state.phase = PHASES.PLACEMENT;
                                 state.placementStep = 1;
+                                
+                                // FIX: Override the HUD variables so it doesn't say "Sem 8" or "12 Blocks"
+                                state.semester = "Placement"; 
+                                state.blocksRemaining = 0; 
+                                
                                 this.startPlacement();
                                 break; 
                             }
@@ -208,15 +235,22 @@
                             break;
 
                         case PHASES.PLACEMENT:
-                            // Cycle through the 3 reflective screens
-                            if (state.placementStep < 3) {
-                                state.placementStep++;
+                            if (state.placementStep === 1) {
+                                state.placementStep = 2;
+                                this.startPlacement();
+                            } else if (state.placementStep === 2) {
+                                state.placementStep = 3;
                                 this.startPlacement();
                             } else {
-                                // Done reflecting, formally continue into the Semester 7 Narrative
+                                // EXTREMELY IMPORTANT: Placements are done! 
+                                // We must push the clock to Turn 11 (Sem 8) so Turn 10 ends completely.
+                                state.turn = 11;
+                                state.semester = 8;
+                                state.blocksRemaining = 12;
                                 state.phase = PHASES.NARRATIVE;
                                 this.startNarrative();
                             }
+                            this.syncHUD();
                             break;
                     }
                     this.syncHUD();
