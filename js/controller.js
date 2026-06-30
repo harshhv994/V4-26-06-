@@ -1,8 +1,19 @@
-            const Controller = {
+const Controller = {
                 syncHUD: function() {
                     UI.updateHUD(state.stats, state.resume, state.turn, state.semester, state.blocksRemaining);
                     UI.updateEventLog(state.logs);
-                    UI.updateNetworkPanel(state.network); // <--- ADD THIS LINE
+                    UI.updateNetworkPanel(state.network); 
+                },
+                closeTutorial: function() {
+                    state.hasSeenTimeTutorial = true;
+                    const modal = document.getElementById('time-tutorial-modal');
+                    if (modal) modal.remove();
+                },
+                
+                // --- PATCH 3 ADDITION: Close Report Card ---
+                closeReportCard: function() {
+                    const modal = document.getElementById('report-card-modal');
+                    if (modal) modal.remove();
                 },
 
                 startNarrative: function() {
@@ -13,11 +24,16 @@
                     }
                     UI.updateNarrativeSidePanel(`${currentData.Semester}: ${currentData.Phase}`, currentData['the vibe']);
                     UI.updateBoard(UI.renderNarrative(currentData.Phase, currentData['the psychology '], currentData.Poetic));
+                    
+                    // --- ONE-TIME UX TUTORIAL ---
+                    if (state.turn === 1 && !state.hasSeenTimeTutorial) {
+                        document.body.insertAdjacentHTML('beforeend', UI.renderTutorialModal());
+                    }
                 },
                 startInterlude: function() {
                     UI.updateNarrativeSidePanel("The Intern Selection", "The SPO portal is live. Evaluate your options based on the resume you have built.");
-                    // Send all available internships to the UI
                     UI.updateBoard(UI.renderInterlude(db.intern));
+                    this.syncHUD();
                 },
 
                 handleInterludeSelection: function(cardId) {
@@ -42,7 +58,7 @@
                     // Fast forward directly to Turn 6 (Semester 5)
                     state.turn = 6;
                     state.semester = 5;
-                    state.blocksRemaining = 12;
+                    state.blocksRemaining = Logic.getBlocksForTurn(state.turn); // CENTRALIZED ALLOCATION
                     state.phase = PHASES.NARRATIVE;
                     
                     this.startNarrative();
@@ -51,6 +67,7 @@
                 startSummer: function() {
                     UI.updateNarrativeSidePanel("The Summer Divide", "Empty hostels, quiet campus roads, or a new city skyline.");
                     UI.updateBoard(UI.renderSummer());
+                    this.syncHUD();
                 },
 
                 handleSummerSelection: function(choice) {
@@ -71,14 +88,13 @@
                     }
                     Logic.clampStats();
                     
-                    // SNAPSHOT THE CPI FOR PLACEMENTS
-                    state.stats.lockedCPI = state.stats.CPI; 
+                    // SNAPSHOT THE CPI FOR PLACEMENTS VIA THE ENGINE
+                    Logic.updateCPI(true); 
                     
                     // Fast forward directly to Turn 9 (Semester 7)
                     state.turn = 9;
                     state.semester = 7;
-                    state.blocksRemaining = 12;
-                    
+                    state.blocksRemaining = Logic.getBlocksForTurn(state.turn); // CENTRALIZED ALLOCATION
                     // Drop them into the Sem 7 Narrative (The Final Sprint)
                     state.phase = PHASES.NARRATIVE;
                     this.startNarrative();
@@ -86,10 +102,9 @@
 
                     // Trigger the SPO System Pop-up to warn the player
                     setTimeout(() => {
-                        alert(`🏢 SPO OFFICIAL NOTICE:\n\nYour Placement CPI has been formally locked at ${state.stats.lockedCPI.toFixed(2)} based on your 6th-semester transcript.\n\nYou have exactly 12 blocks (Semester 7) left to aggressively acquire final PORs, Projects, and hidden skills before the Placement Drive begins!`);
+                        alert(`🏢 SPO OFFICIAL NOTICE:\n\nYour Placement CPI has been formally locked at ${state.stats.lockedCPI.toFixed(2)} based on your 6th-semester transcript.\n\nYou have exactly ${GAME_CONFIG.TIME_BLOCKS_PER_SEMESTER} available blocks (Semester 7) left to aggressively acquire final PORs, Projects, and hidden skills before the Placement Drive begins!`);
                     }, 100);
                 },
-
 
                 startFriction: function() {
                     const eventCard = Logic.drawRandomFriction();
@@ -100,33 +115,9 @@
                     UI.updateBoard(UI.renderFriction(eventCard));
                 },
 
-                // PHASE 3: Completely rewritten startOpportunity
                 startOpportunity: function() {
-                    // 1. Pick the correct database based on the active tab
-                    let rawData = [];
-                    if (state.activeTab === 'projects') rawData = db.proj;
-                    if (state.activeTab === 'interns') rawData = db.intern;
-                    if (state.activeTab === 'pors') rawData = db.por;
-
-                    // 2. Filter for current semester (Internships might be 'summer')
-                    const availableCards = rawData.filter(c => {
-                        if (c.Sem_Start === 'summer') return state.semester % 2 === 0; // Show summers after even sems
-                        return state.semester >= (parseInt(c.Sem_Start) || 1);
-                    });
-
-                    // 3. Process requirements and build UI data objects
-                    const tabData = availableCards.map(card => {
-                        const reqEval = Logic.evaluateRequirements(card.Req_Prerequisite);
-                        const cost = Logic.getSafeInt(card.Cost_Time);
-                        const isAffordable = state.blocksRemaining >= cost;
-                        
-                        return {
-                            id: card.ID,
-                            html: UI.components.oppCard(card, reqEval.locked, isAffordable, reqEval.html)
-                        };
-                    });
-
-                    UI.updateBoard(UI.renderOpportunity(tabData, state.activeTab));
+                    // Default to showing the 'projects' tab when the phase opens
+                    this.handleTabSwitch('projects');
                 },
 
                 startAction: function() {
@@ -198,8 +189,20 @@
                             state.phase = PHASES.ACTION;
                             this.startAction();
                             break;
+                            
+                        // --- PATCH 3: REWRITTEN ACTION PHASE (REPORT CARD TRIGGER) ---
                         case PHASES.ACTION:
-                            Logic.calculateEndSemesterCPI();
+                            const academicTurns = [1, 2, 3, 4, 6, 7, 9, 11];
+                            const isAcademic = academicTurns.includes(state.turn);
+                            
+                            // SNAPSHOT: Capture points and semester before the logic wipes them
+                            const prevStudy = state.stats.Study;
+                            const prevSem = state.semester;
+
+                            Logic.calculateSemesterSPI(); // <--- TRIGGERS THE NEW GRADING ENGINE
+                            
+                            // Retrieve the SPI that was just generated
+                            const earnedSPI = isAcademic && state.spiHistory.length > 0 ? state.spiHistory[state.spiHistory.length - 1] : 0;
                             
                             // Advance the clock to the next phase
                             state.phase = PHASES.NARRATIVE;
@@ -215,23 +218,27 @@
                                 11: 8
                             };
                             state.semester = turnToSem[state.turn] || 8; 
-                            state.blocksRemaining = 12;
+                            
+                            // CENTRALIZED ALLOCATION
+                            state.blocksRemaining = Logic.getBlocksForTurn(state.turn); 
 
-                            // INTERCEPT: After Sem 7 finishes (Turn 10 starts) -> Trigger Placements
                             // INTERCEPT: After Sem 7 finishes (Turn 10 starts) -> Trigger Placements
                             if (state.turn === 10) {
                                 state.phase = PHASES.PLACEMENT;
                                 state.placementStep = 1;
-                                
-                                // FIX: Override the HUD variables so it doesn't say "Sem 8" or "12 Blocks"
                                 state.semester = "Placement"; 
-                                state.blocksRemaining = 0; 
                                 
                                 this.startPlacement();
-                                break; 
+                            } else {
+                                this.startNarrative();
                             }
+                            
+                            this.syncHUD(); // Sync HUD for the new phase
 
-                            this.startNarrative();
+                            // RENDER THE REPORT CARD (on top of the new phase UI)
+                            if (isAcademic) {
+                                document.body.insertAdjacentHTML('beforeend', UI.renderReportCardModal(prevSem, prevStudy, earnedSPI, state.stats.CPI));
+                            }
                             break;
 
                         case PHASES.PLACEMENT:
@@ -246,7 +253,7 @@
                                 // We must push the clock to Turn 11 (Sem 8) so Turn 10 ends completely.
                                 state.turn = 11;
                                 state.semester = 8;
-                                state.blocksRemaining = 12;
+                                state.blocksRemaining = Logic.getBlocksForTurn(state.turn); // CENTRALIZED ALLOCATION
                                 state.phase = PHASES.NARRATIVE;
                                 this.startNarrative();
                             }
@@ -281,19 +288,62 @@
                         
                         state.stats.Social += 1;
                         Logic.clampStats();
+                        // Logic.updateCPI() removed (shifted to end of semester)
                     }
                     
                     this.startAction(); 
                     this.syncHUD();
                 },
 
-                // PHASE 3: New tab switching handler
                 handleTabSwitch: function(tabName) {
-                    state.activeTab = tabName;
-                    this.startOpportunity(); // Re-render the UI with the new tab
+                    try {
+                        let data = [];
+                        // Match the exact string names from your UI buttons
+                        if (tabName === 'projects') data = db.proj || [];
+                        if (tabName === 'interns') data = db.intern || [];
+                        if (tabName === 'pors') data = db.por || [];
+
+                        // 1. Strictly filter opportunities by semester
+                        const validData = data.filter(card => {
+                            if (!card || !card.ID) return false; 
+                            
+                            const start = parseInt(card.Sem_Start) || 1;
+                            const end = parseInt(card.Sem_End) || 8;
+                            return state.semester >= start && state.semester <= end;
+                        });
+
+                        // 2. Generate the HTML objects that your renderOpportunity function expects
+                        const tabData = validData.map(card => {
+                            const reqEval = Logic.evaluateRequirements(card.Req_Prerequisite);
+                            const isDrafted = state.history.includes(card.ID);
+                            const isAffordable = state.blocksRemaining >= Logic.getSafeInt(card.Cost_Time);
+                            
+                            let cardHtml = '';
+                            if (isDrafted) {
+                                cardHtml = `<div class="opp-card locked" style="border-color: #333; opacity: 0.6;">
+                                    <div>
+                                        <div style="font-weight: bold; color: var(--accent-green);">✓ ${card['Card Name'] || card.ID}</div>
+                                        <div style="font-size: 0.85em; margin-top: 5px; color: var(--text-muted);">Already Completed.</div>
+                                    </div>
+                                </div>`;
+                            } else {
+                                cardHtml = UI.components.oppCard(card, reqEval.locked, isAffordable, reqEval.html);
+                            }
+                            return { html: cardHtml };
+                        });
+                        
+                        if (tabData.length === 0) {
+                            tabData.push({ html: '<p style="color: var(--text-muted); padding: 15px; font-style: italic;">No new opportunities available for your current semester.</p>' });
+                        }
+
+                        // 3. Send it back to your UI to re-render the board and update the active tab
+                        UI.updateBoard(UI.renderOpportunity(tabData, tabName));
+                        
+                    } catch (error) {
+                        console.error("Tab Switch Error: ", error);
+                    }
                 },
 
-                // PHASE 3: New draft click handler
                 handleDraftClick: function(cardId) {
                     // Search all databases to find the card
                     const card = db.proj.find(c => c.ID === cardId) || 

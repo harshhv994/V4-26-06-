@@ -19,8 +19,70 @@
                         <div class="stat-box">💼 Work: ${resume.Internships}</div>
                     `;
                     
-                    // Update Time Panel
-                    document.getElementById('time-tracker').innerHTML = `Sem ${semester} | Turn ${turn} | Blocks: ${blocks}`;
+                    // Update Time Panel (NEW LOGIC)
+                    let blockText = '';
+                    const narrativeTurns = [5, 8, 10]; // Interlude, Summer, Placement
+                    
+                    if (narrativeTurns.includes(turn)) {
+                        blockText = `Blocks: 0`;
+                    } else {
+                        blockText = `<span class="tooltip" style="border-bottom: 1px dashed #888; cursor: help;">⏱️ ${blocks} / ${GAME_CONFIG.TIME_BLOCKS_PER_SEMESTER} Available<span class="tooltip-text"><strong style="color: var(--accent-blue);">Healthy Time Management</strong><br><br>A week contains 24 blocks (168 hrs). 7 are automatically reserved for healthy sleep.<br><br>You have ${GAME_CONFIG.TIME_BLOCKS_PER_SEMESTER} discretionary blocks to spend.</span></span>`;
+                    }
+
+                    document.getElementById('time-tracker').innerHTML = `Sem ${semester} | Turn ${turn} | ${blockText}`;
+                },
+
+                renderTutorialModal: function() {
+                    return `
+                        <div id="time-tutorial-modal" class="modal-overlay">
+                            <div class="modal-content">
+                                <h2 style="color: var(--accent-blue); margin-bottom: 15px;">🛌 Healthy Time Management</h2>
+                                <p style="color: var(--text-main); margin-bottom: 15px; line-height: 1.6; text-align: left;">
+                                    Every semester simulates one week of student life.<br><br>
+                                    A week contains <strong>24 time blocks</strong> (168 hours).<br>
+                                    To encourage realistic planning, <strong style="color: var(--accent-green);">7 blocks are automatically reserved for sleep.</strong><br><br>
+                                    You begin each semester with <strong>${GAME_CONFIG.TIME_BLOCKS_PER_SEMESTER} available blocks</strong> to spend on academics, projects, clubs, networking, fitness, and campus life.<br><br>
+                                    <span style="color: var(--text-muted); font-style: italic;">Manage them wisely—once they're gone, the semester ends.</span>
+                                </p>
+                                <button class="modal-btn" onclick="CampusSimulator.closeTutorial()">Understood</button>
+                            </div>
+                        </div>
+                    `;
+                },
+                renderReportCardModal: function(semester, studyPoints, spi, cpi) {
+                    return `
+                        <div id="report-card-modal" class="modal-overlay" style="animation: fadeIn 0.3s ease-out;">
+                            <div class="modal-content" style="max-width: 450px; animation: popIn 0.4s ease-out; border: 1px solid var(--accent-gold);">
+                                <h2 style="color: var(--accent-gold); margin-bottom: 10px; font-size: 1.8em;">🎓 Semester Report</h2>
+                                <p style="color: var(--text-muted); font-size: 1.1em; margin-bottom: 20px;">Semester ${semester} Completed</p>
+                                
+                                <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 1.2em;">
+                                        <span>📚 Study Points</span>
+                                        <span style="color: var(--accent-blue); font-weight: bold;">${studyPoints} / 70</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 1.2em;">
+                                        <span>🎯 Semester SPI</span>
+                                        <span style="color: var(--accent-green); font-weight: bold;">${spi.toFixed(2)}</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 1.2em; border-top: 1px solid #444; padding-top: 12px;">
+                                        <span>📈 Current CPI</span>
+                                        <span style="color: var(--accent-gold); font-weight: bold;">${cpi.toFixed(2)}</span>
+                                    </div>
+                                </div>
+                                
+                                <div style="background: rgba(74, 144, 226, 0.1); border-left: 3px solid var(--accent-blue); padding: 15px; text-align: left; margin-bottom: 25px; border-radius: 4px;">
+                                    <div style="font-weight: bold; color: var(--accent-blue); margin-bottom: 8px;">💡 Academic Insight</div>
+                                    <div style="font-size: 0.85em; color: var(--text-main); line-height: 1.5;">
+                                        Your Study Points represent the total academic effort invested throughout the semester, including lectures, tutorials, assignments, quizzes, labs, course projects, and exam preparation.<br><br>
+                                        A perfect 10.00 SPI requires 70 Study Points, reflecting consistent academic effort across the entire semester—not just classroom attendance.
+                                    </div>
+                                </div>
+                                
+                                <button class="modal-btn" style="width: 100%; background: var(--accent-gold); color: black;" onclick="CampusSimulator.closeReportCard()">Continue →</button>
+                            </div>
+                        </div>
+                    `;
                 },
 
                 updateEventLog: function(logs) {

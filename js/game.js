@@ -7,7 +7,7 @@
 
             
 
-            // --- 7. EXPOSE PUBLIC API ---
+           // --- 7. EXPOSE PUBLIC API ---
             // These are the only functions the HTML buttons are allowed to call!
             return {
                 boot: initGame,
@@ -16,8 +16,10 @@
                 switchTab: function(tabName) { Controller.handleTabSwitch(tabName); },
                 draftCard: function(cardId) { Controller.handleDraftClick(cardId); },
                 selectInterlude: function(cardId) { Controller.handleInterludeSelection(cardId); },
-                selectSummer: function(choice) { Controller.handleSummerSelection(choice); } // <--- NEW
-            
+                selectSummer: function(choice) { Controller.handleSummerSelection(choice); },
+                closeTutorial: function() { Controller.closeTutorial(); },
+                closeReportCard: function() { Controller.closeReportCard(); }
+                 // <--- ADD THIS
             };
 
 

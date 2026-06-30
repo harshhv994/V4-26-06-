@@ -2,6 +2,11 @@
                 validateCard: function(card) {
                     return card && card.ID;
                 },
+                getBlocksForTurn: function(turn) {
+                    // Narrative event turns that have no playable academic blocks
+                    const narrativeTurns = [5, 8, 10];
+                    return narrativeTurns.includes(turn) ? 0 : GAME_CONFIG.TIME_BLOCKS_PER_SEMESTER;
+                },
 
                 getSafeInt: function(val) {
                     return parseInt(val) || 0;
@@ -20,10 +25,6 @@
                     state.stats.Money = Math.max(0, state.stats.Money);
                     state.stats.Study = Math.max(0, state.stats.Study);
 
-                    // Dynamic CPI Calculation (Base 4.0 + (Study Points * 0.15))
-                    // Example: 20 Study Points = 7.0 CPI. Caps at 10.0.
-                    let calculatedCPI = 4.0 + (state.stats.Study * 0.15);
-                    state.stats.CPI = Math.max(0, Math.min(10.0, calculatedCPI));
                 },
 
                 deductCosts: function(timeCost) {
@@ -82,6 +83,7 @@
                     
                     this.applyResumeStats(card);
                     this.clampStats();
+                
 
                     // Build effects list for the Event Log UI (only log things that actually changed)
                     const effects = {};
@@ -117,11 +119,45 @@
                     return validEvents[Math.floor(Math.random() * validEvents.length)];
                 },
 
-                calculateEndSemesterCPI: function() {
-                    const baseCPI = 7.0;
-                    const resumeBonus = (state.resume.Projects * 0.2) + (state.resume.Internships * 0.3) + (state.resume.Positions * 0.1);
-                    const stressModifier = state.stats.Stress > 100 ? -0.5 : 0;
-                    state.stats.CPI = Math.max(0, Math.min(10, baseCPI + resumeBonus + stressModifier));
+                // --- SINGLE AUTHORITATIVE CPI GENERATOR ---
+                updateCPI: function(lockForPlacement = false) {
+                    // CPI is strictly the average of all completed academic semesters
+                    if (state.spiHistory.length === 0) {
+                        state.stats.CPI = 0.00;
+                    } else {
+                        const totalSPI = state.spiHistory.reduce((sum, val) => sum + val, 0);
+                        state.stats.CPI = totalSPI / state.spiHistory.length;
+                    }
+
+                    if (lockForPlacement) {
+                        state.stats.lockedCPI = state.stats.CPI;
+                    }
+                },
+
+                calculateSemesterSPI: function() {
+                    // 1. Strictly filter for valid academic turns
+                    const academicTurns = [1, 2, 3, 4, 6, 7, 9, 11];
+                    if (!academicTurns.includes(state.turn)) return;
+
+                    // 2. Fetch earned points and iterate through the grading table
+                    const studyPoints = state.stats.Study;
+                    let earnedSPI = 5.00; // Default baseline
+
+                    for (const grade of GAME_CONFIG.SPI_GRADING_SCALE) {
+                        if (studyPoints >= grade.min) {
+                            earnedSPI = grade.spi;
+                            break;
+                        }
+                    }
+
+                    // 3. Save the immutable SPI to history
+                    state.spiHistory.push(earnedSPI);
+                    
+                    // 4. Reset Study points to 0 for the start of the next semester
+                    state.stats.Study = 0;
+
+                    // 5. Automatically trigger the CPI average recalculation
+                    this.updateCPI();
                 },
 
                 evaluateRequirements: function(reqString) {
