@@ -253,9 +253,13 @@
                         effectValue: card.Effect_Value,
                         frequency: card.Frequency,
                         passiveDesc: card.Passive_Effect,
-                        semesterAcquired: state.semester
+                        semesterAcquired: state.semester,
+                        maintenanceCost: parseInt(card.Maintenance_Cost) || 1 // NEW: Store cost from CSV
                     };
                     state.network.push(newConnection);
+
+                    // NEW: Immediately make them active for the current semester
+                    state.activeNetwork.push(newConnection.id);
                     return newConnection;
                 }, 
 

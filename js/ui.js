@@ -84,6 +84,108 @@
                         </div>
                     `;
                 },
+                renderSocialMaintenanceModal: function(networkList, availableBlocks) {
+                    
+                    const friendsHTML = networkList.map(conn => {
+                        // SMART LOOKUP: Double-checks the CSV database if the state is missing the cost
+                        let cost = conn.maintenanceCost;
+                        if (!cost) {
+                            const csvData = db.social.find(s => s.ID === conn.id);
+                            cost = csvData ? (parseInt(csvData.Maintenance_Cost) || parseInt(csvData.Cost_Time) || 1) : 1;
+                        }
+
+                        return `
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">
+                                <label style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                                    <input type="checkbox" class="social-checkbox" value="${conn.id}" data-cost="${cost}" checked>
+                                    <span style="color: var(--text-main); font-weight: bold;">${conn.name}</span>
+                                </label>
+                                <span style="color: var(--accent-blue); font-size: 0.9em;">${cost} Block(s)</span>
+                            </div>
+                        `;
+                    }).join('');
+
+                    return `
+                        <div id="social-maintenance-modal" class="modal-overlay" style="z-index: 10000; animation: fadeIn 0.3s ease-out;">
+                            <div class="modal-content" style="max-width: 400px; border: 1px solid var(--accent-purple);">
+                                <h2 style="color: var(--accent-purple); margin-bottom: 15px;">🤝 Maintain Network</h2>
+                                <p style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 20px;">
+                                    Friendships require time. Select who to spend time with this semester. Inactive friends grant no passive bonuses.
+                                </p>
+                                
+                                <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; text-align: left; max-height: 250px; overflow-y: auto;">
+                                    ${friendsHTML}
+                                </div>
+                                
+                                <div style="margin-top: 20px; font-size: 1.1em; font-weight: bold;">
+                                    Total Cost: <span id="maintenance-cost-display">0</span> / ${availableBlocks} Blocks
+                                </div>
+                                
+                                <button id="maintenance-confirm-btn" class="modal-btn" style="width: 100%; background: var(--accent-purple);">
+                                    Confirm Investments
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                },
+
+                // NEW: This explicitly attaches the listeners after the modal is drawn
+                bindMaintenanceModalListeners: function(availableBlocks) {
+                    const checkboxes = document.querySelectorAll('.social-checkbox');
+                    const costDisplay = document.getElementById('maintenance-cost-display');
+                    const confirmBtn = document.getElementById('maintenance-confirm-btn');
+
+                    const updateTotal = () => {
+                        let total = 0;
+                        checkboxes.forEach(cb => { 
+                            if (cb.checked) total += parseInt(cb.dataset.cost); 
+                        });
+                        
+                        costDisplay.innerText = total;
+                        
+                        // Validation logic
+                        if (total > availableBlocks) {
+                            costDisplay.style.color = 'var(--accent-red)';
+                            confirmBtn.disabled = true;
+                            confirmBtn.style.opacity = '0.5';
+                            confirmBtn.style.cursor = 'not-allowed';
+                        } else {
+                            costDisplay.style.color = 'var(--text-main)';
+                            confirmBtn.disabled = false;
+                            confirmBtn.style.opacity = '1';
+                            confirmBtn.style.cursor = 'pointer';
+                        }
+                    };
+
+                    // Listen for every time a user toggles a checkbox
+                    checkboxes.forEach(cb => cb.addEventListener('change', updateTotal));
+                    
+                    // Listen for the final submission
+// Listen for the final submission
+                    confirmBtn.addEventListener('click', (e) => {
+                        e.preventDefault(); // Prevent any default button behavior
+                        
+                        let selected = [];
+                        let totalCost = 0;
+                        checkboxes.forEach(cb => {
+                            if (cb.checked) {
+                                selected.push(cb.value);
+                                totalCost += parseInt(cb.dataset.cost);
+                            }
+                        });
+                        
+                        // Direct routing: Bypasses game.js and hits the Controller directly
+                        if (typeof Controller !== 'undefined' && typeof Controller.handleSocialMaintenanceConfirm === 'function') {
+                            Controller.handleSocialMaintenanceConfirm(selected, totalCost);
+                        } else {
+                            alert("System Error: Cannot find handleSocialMaintenanceConfirm. Make sure it was placed inside the Controller object in controller.js!");
+                            console.error("Handler missing in Controller.");
+                        }
+                    });
+
+                    // Trigger once immediately on load to calculate the default checked cost
+                    updateTotal();
+                },
 
                 updateEventLog: function(logs) {
                     const logHTML = logs.map(log => {

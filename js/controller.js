@@ -219,8 +219,25 @@ const Controller = {
                             };
                             state.semester = turnToSem[state.turn] || 8; 
                             
-                            // CENTRALIZED ALLOCATION
+                            // CENTRALIZED ALLOCATION (Existing code)
                             state.blocksRemaining = Logic.getBlocksForTurn(state.turn); 
+
+                            // --- SYNC: SOCIAL MAINTENANCE INTERCEPTOR ---
+                            if (isAcademic && state.network.length > 0) {
+                                state.activeNetwork = []; // Clear active buffs for the new semester
+                                
+                                // 1. Render Report Card FIRST (behind the modal)
+                                document.body.insertAdjacentHTML('beforeend', UI.renderReportCardModal(prevSem, prevStudy, earnedSPI, state.stats.CPI));
+                                
+                                // 2. Render Maintenance Modal HTML
+                                document.body.insertAdjacentHTML('beforeend', UI.renderSocialMaintenanceModal(state.network, state.blocksRemaining));
+                                
+                                // 3. NEW: Explicitly bind the DOM listeners now that the HTML exists
+                                UI.bindMaintenanceModalListeners(state.blocksRemaining);
+                                
+                                return; // EXIT advancePhase EARLY! Game resumes on Confirm.
+                            }
+                            // --------------------------------------------
 
                             // INTERCEPT: After Sem 7 finishes (Turn 10 starts) -> Trigger Placements
                             if (state.turn === 10) {
@@ -358,5 +375,32 @@ const Controller = {
                         this.startOpportunity(); 
                         this.syncHUD();
                     }
+                },
+                // --- SYNC: RESUME GAME LOOP AFTER MAINTENANCE ---
+                handleSocialMaintenanceConfirm: function(selectedIds, totalCost) {
+                    if (totalCost > state.blocksRemaining) return; 
+
+                    state.blocksRemaining -= totalCost;
+                    state.activeNetwork = selectedIds;
+                    
+                    // Remove the modal from the DOM
+                    const modal = document.getElementById('social-maintenance-modal');
+                    if (modal) modal.remove();
+
+                    // Resume the normal Phase transition that we halted earlier
+                    if (state.turn === 10) {
+                        state.phase = PHASES.PLACEMENT;
+                        state.placementStep = 1;
+                        state.semester = "Placement"; 
+                        this.startPlacement();
+                    } else {
+                        this.startNarrative();
+                    }
+                    this.syncHUD();
                 }
+
+
+
+
+
             };

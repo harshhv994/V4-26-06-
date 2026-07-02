@@ -73,7 +73,8 @@ const state = {
     spiHistory: [], // <--- STORES PERMANENT SEMESTER SPIs
     
     // --- PASSIVE ENGINE TRACKERS ---
-    network: [],           
+    network: [],
+    activeNetwork: [],           
     passiveCooldowns: {},  
     placementStep: 1,
     hasSeenTimeTutorial: false
