@@ -316,6 +316,8 @@ const UI = {
     },
 
     renderSummer: function() {
+        const hasInternship = state.history.some(id => id.startsWith('INT_'));
+        const canDoProject = state.stats.Social >= 2;
         return `
             <div style="text-align: center; margin-bottom: 20px;">
                 <h2 style="color: var(--accent-gold); font-size: 1.8em;">☀️ The Summer Divide</h2>
@@ -327,10 +329,10 @@ const UI = {
                     <div>
                         <div style="font-weight: bold; font-size: 1.1em; color: var(--accent-gold);">🏢 Complete Internship</div>
                         <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 5px;">Execute your corporate or research role.</div>
-                        <div style="margin-top: 10px; font-size: 0.9em; color: var(--accent-green);">+1 Work Exp, +₹2000, +3 Stress</div>
+                        <div style="margin-top: 10px; font-size: 0.9em; color: var(--accent-green);">+2 Money, +3 Stress</div>
                     </div>
-                    <button class="draft-btn" style="background: var(--accent-gold); color: black;" onclick="CampusSimulator.selectSummer('INTERN')">
-                        💼 Go to Work
+                    <button class="draft-btn" style="background: var(--accent-gold); color: black;" onclick="CampusSimulator.selectSummer('INTERN')" ${hasInternship ? '' : 'disabled'}>
+                        ${hasInternship ? '💼 Go to Work' : '🔒 No Internship Secured'}
                     </button>
                 </div>
 
@@ -340,8 +342,8 @@ const UI = {
                         <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 5px;">Stay in empty hostels and work with a Prof.</div>
                         <div style="margin-top: 10px; font-size: 0.9em; color: var(--accent-green);">+2 Research, +15 Study, -2 Social</div>
                     </div>
-                    <button class="draft-btn" style="background: var(--accent-blue);" onclick="CampusSimulator.selectSummer('PROJECT')">
-                        📚 Stay on Campus
+                    <button class="draft-btn" style="background: var(--accent-blue);" onclick="CampusSimulator.selectSummer('PROJECT')" ${canDoProject ? '' : 'disabled'}>
+                        ${canDoProject ? '📚 Stay on Campus' : '🔒 Need 2 Social'}
                     </button>
                 </div>
 
@@ -349,7 +351,7 @@ const UI = {
                     <div>
                         <div style="font-weight: bold; font-size: 1.1em; color: var(--accent-green);">🏠 Chill at Home</div>
                         <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 5px;">Mom's food and absolute rest.</div>
-                        <div style="margin-top: 10px; font-size: 0.9em; color: var(--accent-green);">+10 Health, -10 Stress</div>
+                        <div style="margin-top: 10px; font-size: 0.9em; color: var(--accent-green);">+5 Health, -5 Stress</div>
                     </div>
                     <button class="draft-btn" style="background: var(--accent-green);" onclick="CampusSimulator.selectSummer('HOME')">
                         ✈️ Pack Bags
@@ -522,7 +524,6 @@ const UI = {
             <h2>Opportunities</h2>
             <div class="tabs">
                 <button class="tab-btn ${activeTab === 'projects' ? 'active' : ''}" onclick="CampusSimulator.switchTab('projects')">📋 Projects</button>
-                <button class="tab-btn ${activeTab === 'interns' ? 'active' : ''}" onclick="CampusSimulator.switchTab('interns')">🏢 Internships</button>
                 <button class="tab-btn ${activeTab === 'pors' ? 'active' : ''}" onclick="CampusSimulator.switchTab('pors')">🎓 Positions</button>
             </div>
             <div class="card-grid">
@@ -536,7 +537,7 @@ const UI = {
             <h2>Locations</h2>
             ${locations.map(loc => {
                 const cost = Logic.getSafeInt(loc.Cost_Time);
-                const isAffordable = blocksRemaining >= cost;
+                const isAffordable = Logic.validateAction(loc).allowed;
                 return `<div class="game-card ${isAffordable ? 'clickable' : 'disabled'}" onclick="${isAffordable ? `CampusSimulator.takeLocationAction('${loc.ID}')` : ''}" style="cursor: ${isAffordable ? 'pointer' : 'not-allowed'};">
                     <div class="card-header">
                         <span>${loc.Location_Name}</span>
@@ -561,7 +562,7 @@ const UI = {
                         ${reqHTML ? `<div>${reqHTML}</div>` : ''}
                     </div>
                     <button class="draft-btn" onclick="CampusSimulator.draftCard('${card.ID}')" ${isLocked || !isAffordable ? 'disabled' : ''}>
-                        ${isLocked ? '🔒 Locked' : !isAffordable ? '❌ Not Enough Time' : '✅ Draft'}
+                        ${isLocked ? '🔒 Locked' : !isAffordable ? '❌ Cannot Afford' : '✅ Draft'}
                     </button>
                 </div>
             `;

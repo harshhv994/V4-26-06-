@@ -38,18 +38,24 @@ const Controller = {
 
     handleInterludeSelection: function (cardId) {
         if (cardId === 'SKIP') {
-            state.stats.Health = Math.min(200, state.stats.Health + 50);
-            state.stats.Stress = Math.max(0, state.stats.Stress - 50);
+            state.stats.Health += 5;
+            state.stats.Stress -= 5;
             Logic.clampStats();
             Logic.addLog({
                 type: 'neutral', icon: '🏠', title: 'Summer at Home',
                 desc: 'You took a break, recovered your health, and lowered your stress.',
-                effects: { Health: 50, Stress: -50 },
+                effects: { Health: 5, Stress: -5 },
                 semester: state.semester, turn: state.turn
             });
         } else {
             const card = db.intern.find(c => c.ID === cardId);
             if (!card) return;
+            if (state.history.includes(card.ID)) return;
+            const validation = Logic.validateAction(card);
+            if (!validation.allowed) {
+                alert(validation.reason);
+                return;
+            }
             const result = Logic.processCardEffect(card, 'opportunity');
             Logic.addLog(result);
             state.history.push(card.ID);
@@ -72,19 +78,31 @@ const Controller = {
 
     handleSummerSelection: function (choice) {
         if (choice === 'INTERN') {
-            state.stats.Money += 2000;
-            state.stats.Stress = Math.min(200, state.stats.Stress + 30);
-            state.resume.Internships += 1;
-            Logic.addLog({ type: 'neutral', icon: '💼', title: 'Summer Internship', desc: 'Gained work experience.', effects: { Money: 2000, Stress: 30 }, semester: state.semester, turn: state.turn });
+            const hasInternship = state.history.some(id => id.startsWith('INT_'));
+            if (!hasInternship) {
+                alert('You need to secure an internship before you can complete one.');
+                return;
+            }
+            if (state.stats.Stress + 3 > 10) {
+                alert('Burnout: you are too stressed to complete the internship. Choose recovery or a different summer path.');
+                return;
+            }
+            state.stats.Money += 2;
+            state.stats.Stress += 3;
+            Logic.addLog({ type: 'neutral', icon: '💼', title: 'Summer Internship', desc: 'Completed your secured internship.', effects: { Money: 2, Stress: 3 }, semester: state.semester, turn: state.turn });
         } else if (choice === 'PROJECT') {
+            if (state.stats.Social < 2) {
+                alert('Not enough Social support for the summer project.');
+                return;
+            }
             state.stats.Study += 15;
-            state.stats.Social = Math.max(0, state.stats.Social - 20);
+            state.stats.Social -= 2;
             state.resume.Research += 2;
-            Logic.addLog({ type: 'neutral', icon: '🔬', title: 'Summer Project', desc: 'Built your research profile.', effects: { Study: 15, Social: -20 }, semester: state.semester, turn: state.turn });
+            Logic.addLog({ type: 'neutral', icon: '🔬', title: 'Summer Project', desc: 'Built your research profile.', effects: { Study: 15, Social: -2, Research: 2 }, semester: state.semester, turn: state.turn });
         } else if (choice === 'HOME') {
-            state.stats.Health = Math.min(200, state.stats.Health + 100);
-            state.stats.Stress = 0;
-            Logic.addLog({ type: 'neutral', icon: '🏠', title: 'Chilled at Home', desc: 'Recovered from burnout.', effects: { Health: 100, Stress: -100 }, semester: state.semester, turn: state.turn });
+            state.stats.Health += 5;
+            state.stats.Stress -= 5;
+            Logic.addLog({ type: 'neutral', icon: '🏠', title: 'Chilled at Home', desc: 'Recovered from burnout.', effects: { Health: 5, Stress: -5 }, semester: state.semester, turn: state.turn });
         }
         Logic.clampStats();
 
@@ -260,11 +278,9 @@ const Controller = {
 
     handleLocationClick: function (locId) {
         const loc = db.locations.find(l => l.ID === locId);
-        if (!loc || state.blocksRemaining < Logic.getSafeInt(loc.Cost_Time)) return;
-
-        // --- BURNOUT RULE: Block actions that would push Stress above 10 ---
-        if (Logic.wouldCauseBurnout(loc)) {
-            alert('⚠️ BURNOUT! Your stress is too high to do this. You must Rest or relieve Stress first.');
+        const validation = Logic.validateAction(loc);
+        if (!validation.allowed) {
+            alert(validation.reason);
             return;
         }
 
@@ -301,7 +317,6 @@ const Controller = {
             let data = [];
             // Match the exact string names from your UI buttons
             if (tabName === 'projects') data = db.proj || [];
-            if (tabName === 'interns') data = db.intern || [];
             if (tabName === 'pors') data = db.por || [];
 
             // 1. Strictly filter opportunities by semester
@@ -317,7 +332,7 @@ const Controller = {
             const tabData = validData.map(card => {
                 const reqEval = Logic.evaluateRequirements(card.Req_Prerequisite);
                 const isDrafted = state.history.includes(card.ID);
-                const isAffordable = state.blocksRemaining >= Logic.getSafeInt(card.Cost_Time);
+                const isAffordable = Logic.validateAction(card).allowed;
 
                 let cardHtml = '';
                 if (isDrafted) {
@@ -351,9 +366,9 @@ const Controller = {
             db.intern.find(c => c.ID === cardId) ||
             db.por.find(c => c.ID === cardId);
 
-        // --- BURNOUT RULE: Block actions that would push Stress above 10 ---
-        if (card && Logic.wouldCauseBurnout(card)) {
-            alert('⚠️ BURNOUT! Your stress is too high to take this on. You must Rest or relieve Stress first.');
+        const validation = Logic.validateAction(card);
+        if (!validation.allowed) {
+            alert(validation.reason);
             return;
         }
 

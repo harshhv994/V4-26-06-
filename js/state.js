@@ -27,17 +27,17 @@ const SUMMER_CHOICES = [
     { 
         ID: 'SUM_INTERN', Type: 'INTERNSHIP', 'Card Name': 'Complete Internship', 
         Description: 'Execute your corporate or research role.', 
-        Reward_Money: 2000, Cost_Stress: 30, icon: '💼', color: 'var(--accent-gold)' 
+        Reward_Money: 2, Cost_Stress: 3, icon: '💼', color: 'var(--accent-gold)'
     },
     { 
         ID: 'SUM_PROJ', Type: 'PROJECT', 'Card Name': 'Summer Project', 
         Description: 'Stay in empty hostels and work with a Prof.', 
-        Reward_Study: 15, Cost_Social: 20, Reward_Res: 2, icon: '🔬', color: 'var(--accent-blue)' 
+        Reward_Study: 15, Cost_Social: 2, Reward_Res: 2, icon: '🔬', color: 'var(--accent-blue)'
     },
     { 
         ID: 'SUM_HOME', Type: 'NEUTRAL', 'Card Name': 'Chill at Home', 
         Description: 'Mom\'s food and absolute rest.', 
-        Reward_Health: 100, Reward_Stress: 100, icon: '🏠', color: 'var(--accent-green)'
+        Reward_Health: 5, Reward_Stress: 5, icon: '🏠', color: 'var(--accent-green)'
     }
 ];
 
@@ -76,6 +76,7 @@ const state = {
     network: [],
     activeNetwork: [],           
     passiveCooldowns: {},  
+    mentorBonusesClaimed: [],
     placementStep: 1,
     hasSeenTimeTutorial: false
 };

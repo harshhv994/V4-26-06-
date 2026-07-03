@@ -53,6 +53,37 @@ const Logic = {
         return (state.stats.Stress + stressGain) > 10;
     },
 
+    validateAction: function (card) {
+        if (!this.validateCard(card)) return { allowed: false, reason: 'This action is unavailable.' };
+
+        const costs = {
+            Time: this.getSafeInt(card.Cost_Time),
+            Health: this.getSafeInt(card.Cost_Health),
+            Social: this.getSafeInt(card.Cost_Social),
+            Money: this.getSafeInt(card.Cost_Money),
+            Study: this.getSafeInt(card.Cost_Study)
+        };
+        const available = {
+            Time: state.blocksRemaining,
+            Health: state.stats.Health,
+            Social: state.stats.Social,
+            Money: state.stats.Money,
+            Study: state.stats.Study
+        };
+
+        for (const resource of Object.keys(costs)) {
+            if (available[resource] < costs[resource]) {
+                return { allowed: false, reason: `Not enough ${resource} for this action.` };
+            }
+        }
+
+        if (this.wouldCauseBurnout(card)) {
+            return { allowed: false, reason: 'Burnout: relieve Stress before taking this action.' };
+        }
+
+        return { allowed: true, reason: '' };
+    },
+
     deductCosts: function (timeCost) {
         state.blocksRemaining -= Logic.getSafeInt(timeCost);
     },
@@ -68,7 +99,7 @@ const Logic = {
         // Uses the exact 'Type' column to fix the tracking bug
         if (card.Type === 'PROJECT') state.resume.Projects++;
         if (card.Type === 'INTERNSHIP') state.resume.Internships++;
-        if (card.Type === 'POR') state.resume.Positions++;
+        if (card.Type === 'POR') state.resume.Positions += this.getSafeInt(card.Reward_POR);
 
         // Track hidden resume stats permanently for the Top Bar
         state.resume.Research += this.getSafeInt(card.Reward_Res);
@@ -82,13 +113,14 @@ const Logic = {
         let timeDelta = 0, netHealth = 0, netStress = 0, netSocial = 0, netMoney = 0, netStudy = 0;
 
         if (card.Type === 'RANDOM') {
-            // Friction cards use Cost columns as positive/negative Deltas
-            timeDelta = this.getSafeInt(card.Cost_Time);
-            netHealth = this.getSafeInt(card.Cost_Health);
-            netStudy = this.getSafeInt(card.Cost_Study);
-            netSocial = this.getSafeInt(card.Cost_Social);
-            netMoney = this.getSafeInt(card.Cost_Money);
-            netStress = this.getSafeInt(card.Cost_Stress);
+            // Random events are unavoidable: rewards help and costs hurt.
+            // Any survival-stat shortfall is converted to Stress by clampStats.
+            timeDelta = -this.getSafeInt(card.Cost_Time);
+            netHealth = this.getSafeInt(card.Reward_Health) - this.getSafeInt(card.Cost_Health);
+            netStudy = this.getSafeInt(card.Reward_Study) - this.getSafeInt(card.Cost_Study);
+            netSocial = this.getSafeInt(card.Reward_Social) - this.getSafeInt(card.Cost_Social);
+            netMoney = this.getSafeInt(card.Reward_Money) - this.getSafeInt(card.Cost_Money);
+            netStress = this.getSafeInt(card.Cost_Stress) - this.getSafeInt(card.Reward_Stress);
         } else {
             // Standard cards: Net = Reward - Cost
             timeDelta = -this.getSafeInt(card.Cost_Time); // Costs subtract time
@@ -101,6 +133,7 @@ const Logic = {
 
         // Apply the math to the global state
         state.blocksRemaining += timeDelta;
+        state.blocksRemaining = Math.max(0, state.blocksRemaining);
         state.stats.Health += netHealth;
         state.stats.Stress += netStress;
         state.stats.Social += netSocial;
@@ -243,9 +276,7 @@ const Logic = {
     },
 
     draftCard: function (cardId, cardData) {
-        if (!this.validateCard(cardData)) return false;
-        if (state.blocksRemaining < this.getSafeInt(cardData.Cost_Time)) return false;
-        return true;
+        return this.validateAction(cardData).allowed;
     }, // <--- COMMA ADDED HERE
 
     // --- PHASE 4: ORGANIC SOCIAL ENCOUNTERS ---
@@ -295,23 +326,11 @@ const Logic = {
     // ==========================================
 
     getRichResume: function () {
-        let algo = 0, res = 0, prod = 0;
-        const allCards = [...db.proj, ...db.intern, ...db.por];
-
-        state.history.forEach(id => {
-            const card = allCards.find(c => c.ID === id);
-            if (card) {
-                algo += this.getSafeInt(card.Reward_Algo);
-                res += this.getSafeInt(card.Reward_Res);
-                prod += this.getSafeInt(card.Reward_Prod);
-            }
-        });
-
         return {
             cpi: state.stats.lockedCPI !== null ? state.stats.lockedCPI : (state.stats.CPI || 0),
-            algo: algo,
-            res: res,
-            prod: prod,
+            algo: state.resume.Algo,
+            res: state.resume.Research,
+            prod: state.resume.Product,
             por: state.resume.Positions,
             projects: state.resume.Projects,
             internships: state.resume.Internships
@@ -404,10 +423,11 @@ const Logic = {
                 const rMoney = parseInt(card.Reward_Money) || 0;
                 const rStress = parseInt(card.Reward_Stress) || 0;
 
-                const rAlgo = parseInt(card.Reward_Algo) || 0;
-                const rPOR = parseInt(card.Reward_POR) || 0;
-                const rRes = parseInt(card.Reward_Res) || 0;
-                const rProd = parseInt(card.Reward_Prod) || 0;
+                const careerBonusAvailable = !state.mentorBonusesClaimed.includes(id);
+                const rAlgo = careerBonusAvailable ? (parseInt(card.Reward_Algo) || 0) : 0;
+                const rPOR = careerBonusAvailable ? (parseInt(card.Reward_POR) || 0) : 0;
+                const rRes = careerBonusAvailable ? (parseInt(card.Reward_Res) || 0) : 0;
+                const rProd = careerBonusAvailable ? (parseInt(card.Reward_Prod) || 0) : 0;
 
                 // Apply stats
                 if (rHealth > 0) { state.stats.Health += rHealth; friendSummary.rewards.push(`❤️ +${rHealth}`); }
@@ -416,10 +436,14 @@ const Logic = {
                 if (rMoney > 0) { state.stats.Money += rMoney; friendSummary.rewards.push(`💰 +${rMoney}`); }
                 if (rStress > 0) { state.stats.Stress -= rStress; friendSummary.rewards.push(`😌 -${rStress} Stress`); }
 
-                if (rAlgo > 0) { state.resume.Algorithm += rAlgo; friendSummary.rewards.push(`💻 +${rAlgo} Algo`); }
-                if (rPOR > 0) { state.resume.POR += rPOR; friendSummary.rewards.push(`👑 +${rPOR} POR`); }
+                if (rAlgo > 0) { state.resume.Algo += rAlgo; friendSummary.rewards.push(`💻 +${rAlgo} Algo`); }
+                if (rPOR > 0) { state.resume.Positions += rPOR; friendSummary.rewards.push(`👑 +${rPOR} POR`); }
                 if (rRes > 0) { state.resume.Research += rRes; friendSummary.rewards.push(`🔬 +${rRes} Res`); }
                 if (rProd > 0) { state.resume.Product += rProd; friendSummary.rewards.push(`🚀 +${rProd} Prod`); }
+
+                if (careerBonusAvailable && (rAlgo > 0 || rPOR > 0 || rRes > 0 || rProd > 0)) {
+                    state.mentorBonusesClaimed.push(id);
+                }
 
                 if (friendSummary.rewards.length > 0) summary.push(friendSummary);
             }
