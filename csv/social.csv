@@ -1,22 +1,22 @@
-ID,Type,Card Name,Category,Sem_Start,Sem_End,Cost_Time,Cost_Health,Cost_Study,Cost_Social,Cost_Money,Cost_Stress,Req_Prerequisite,Reward_Algo,Reward_POR,Reward_Res,Reward_Prod,Reward_Health,Reward_Study,Reward_Social,Reward_Money,Reward_Stress
-SC01,SOCIAL,Hostel Wingmate,Hostel,1,8,0,0,0,0,0,0,None,0,0,0,0,1,0,1,0,1
-SC02,SOCIAL,Freshers' Group,Hostel,1,2,0,0,0,0,0,0,None,0,0,0,0,0,0,2,0,1
+ï»¿ID,Type,Card Name,Category,Sem_Start,Sem_End,Cost_Time,Cost_Health,Cost_Study,Cost_Social,Cost_Money,Cost_Stress,Req_Prerequisite,Reward_Algo,Reward_POR,Reward_Res,Reward_Prod,Reward_Health,Reward_Study,Reward_Social,Reward_Money,Reward_Stress
+SC01,SOCIAL,Hostel Wingmate,Hostel,1,8,0,0,0,0,0,0,None,0,0,0,0,1,0,1,0,0
+SC02,SOCIAL,Freshers Group,Hostel,1,2,0,0,0,0,0,0,None,0,0,0,0,0,0,2,0,0
 SC03,SOCIAL,Night Owl Friend,Hostel,1,8,0,0,0,0,0,0,None,0,0,0,0,0,2,0,0,1
-SC04,SOCIAL,Helpful Batchmate,Academic,1,8,0,0,0,0,0,0,None,0,0,0,0,1,2,0,0,0
+SC04,SOCIAL,Helpful Batchmate,Academic,1,8,0,0,0,0,0,0,None,0,0,0,0,0,2,0,0,0
 SC05,SOCIAL,Open Elective Friend,Academic,2,6,0,0,0,0,0,0,None,0,0,0,0,0,1,1,0,0
 SC06,SOCIAL,Department Senior,Academic,2,5,0,0,0,0,0,0,None,1,0,0,0,0,0,1,0,0
 SC07,SOCIAL,Teaching Assistant,Academic,2,6,0,0,0,0,0,0,None,0,0,1,0,0,2,0,0,0
-SC08,SOCIAL,Research Professor,Academic,2,8,0,0,0,0,0,0,None,0,0,1,0,0,1,1,0,0
+SC08,SOCIAL,Research Professor,Academic,2,8,0,0,0,0,0,0,None,0,0,1,0,0,1,0,0,0
 SC09,SOCIAL,Research Supervisor,Academic,4,8,0,0,0,0,0,0,Research Professor,0,0,2,0,0,0,0,0,1
 SC10,SOCIAL,Club Senior,Leadership,2,4,0,0,0,0,0,0,None,0,1,0,0,0,0,1,0,0
 SC11,SOCIAL,Festival Mentor,Leadership,4,6,0,0,0,0,0,0,Club Senior,0,2,0,0,0,0,0,0,1
-SC12,SOCIAL,Gymkhana Mentor,Leadership,3,6,0,0,0,0,0,0,None,0,0,0,0,1,0,2,0,0
+SC12,SOCIAL,Gymkhana Mentor,Leadership,3,6,0,0,0,0,0,0,None,0,0,0,0,0,0,2,0,0
 SC13,SOCIAL,SPO Officer,Career,5,7,0,0,0,0,0,0,None,0,0,0,1,0,0,1,0,1
 SC14,SOCIAL,Industry Mentor,Career,5,8,0,0,0,0,0,0,None,1,0,0,1,0,0,0,0,0
 SC15,SOCIAL,Startup Founder Senior,Career,4,8,0,0,0,0,0,0,None,0,0,0,2,0,0,0,1,0
 SC16,SOCIAL,Placement Coordinator,Career,7,8,0,0,0,0,0,0,SPO Officer,0,0,0,0,0,2,0,0,2
-SC17,SOCIAL,Mess Committee Friend,Hostel,1,8,0,0,0,0,0,0,None,0,0,0,0,1,0,0,1,0
+SC17,SOCIAL,Mess Committee Friend,Hostel,1,8,0,0,0,0,0,0,None,0,0,0,0,0,0,0,1,1
 SC18,SOCIAL,Supportive Partner,Personal,7,8,0,0,0,0,0,0,None,0,0,0,0,1,0,0,0,2
-SC19,SOCIAL,Intense Rivalry,Personal,1,8,0,0,0,0,0,0,None,0,0,0,0,0,3,0,0,1
-SC20,SOCIAL,Jugaad Friend,Personal,1,8,0,0,0,0,0,0,None,0,0,0,0,0,0,0,1,1
-SC21,SOCIAL,Lifelong Friend,Personal,7,8,0,0,0,0,0,0,Any Hostel card ×5 sems,0,0,0,0,2,0,0,0,1
+SC19,SOCIAL,Intense Rivalry,Personal,1,8,0,0,0,0,0,0,None,0,0,0,0,0,3,0,0,0
+SC20,SOCIAL,Jugaad Friend,Personal,1,8,0,0,0,0,0,0,None,0,0,0,0,0,0,0,2,0
+SC21,SOCIAL,Lifelong Friend,Personal,7,8,0,0,0,0,0,0,Any Hostel card x5 sems,0,0,0,0,2,0,0,0,1
