@@ -146,7 +146,6 @@ const Controller = {
                     }
                     this.syncHUD();
                 },
-
                 advancePhase: function() {
                     switch (state.phase) {
                         case PHASES.NARRATIVE:
@@ -167,22 +166,72 @@ const Controller = {
                                 break;
                             }
 
-                             // --- REFACTORED: SOCIAL MAINTENANCE INTERCEPTOR ---
-                            // Check if it's an academic sem (Turn > 1) and we haven't done maintenance for this turn yet
                             if (state.turn > 1 && state.network.length > 0 && state.maintenanceDoneForTurn !== state.turn) {
-                                state.activeNetwork = []; 
-                                
-                                document.body.insertAdjacentHTML('beforeend', UI.renderSocialMaintenanceModal(state.network, state.blocksRemaining));
-                                UI.bindMaintenanceModalListeners(state.blocksRemaining);
-                                return; // Halt loop
+                                 state.activeNetwork = []; 
+                                 document.body.insertAdjacentHTML('beforeend', UI.renderSocialMaintenanceModal(state.network, state.blocksRemaining));
+                                 UI.bindMaintenanceModalListeners(state.blocksRemaining);
+                                 return; // HALT THE GAME LOOP
                             }
-                            // --------------------------------------------------
                             
-                            // If maintenance is done or not needed, start the Narrative
-                            state.phase = PHASES.FRICTION; // NARRATIVE phase immediately queues up FRICTION next
-                            this.startNarrative();
+
+                            state.phase = PHASES.FRICTION;
+                            this.startFriction();
                             break;
+
+                        case PHASES.INTERLUDE:
+                            this.handleInterludeSelection('SKIP');
+                            break;
+                        case PHASES.SUMMER:
+                            this.handleSummerSelection('HOME');
+                            break;
+                        case PHASES.FRICTION:
+                            state.phase = PHASES.OPPORTUNITY;
+                            this.startOpportunity();
+                            break;
+                        case PHASES.OPPORTUNITY:
+                            state.phase = PHASES.ACTION;
+                            this.startAction();
+                            break;
+                        case PHASES.ACTION:
+                            const academicTurns = [1, 2, 3, 4, 6, 7, 9, 11];
+                            const isAcademic = academicTurns.includes(state.turn);
                             
+                            const prevStudy = state.stats.Study;
+                            const prevSem = state.semester;
+
+                            Logic.calculateSemesterSPI(); 
+                            
+                            const earnedSPI = isAcademic && state.spiHistory.length > 0 ? state.spiHistory[state.spiHistory.length - 1] : 0;
+                            
+                            state.phase = PHASES.NARRATIVE;
+                            state.turn++;
+                            
+                            const turnToSem = {
+                                1: 1, 2: 2, 3: 3, 4: 4, 
+                                5: 4, 6: 5, 7: 6, 8: 6, 9: 7, 10: 8, 11: 8
+                            };
+                            state.semester = turnToSem[state.turn] || 8; 
+                            
+                            state.blocksRemaining = Logic.getBlocksForTurn(state.turn); 
+
+                            if (state.turn === 10) {
+                                state.phase = PHASES.PLACEMENT;
+                                state.placementStep = 1;
+                                state.semester = "Placement"; 
+                                this.startPlacement();
+                            } else {
+                                this.startNarrative();
+                            }
+                            
+                            this.syncHUD(); 
+
+                            // --- FIXED: ONLY SHOW REPORT CARD HERE ---
+                            if (isAcademic) {
+                                document.body.insertAdjacentHTML('beforeend', UI.renderReportCardModal(prevSem, prevStudy, earnedSPI, state.stats.CPI));
+                            }
+                            break;
+                        // ... (keep the existing PLACEMENT cases exactly the same)
+
                         case PHASES.INTERLUDE:
                             // Default to skip if they bypass the UI buttons
                             this.handleInterludeSelection('SKIP');
@@ -200,73 +249,46 @@ const Controller = {
                             break;
                             
                         // --- PATCH 3: REWRITTEN ACTION PHASE (REPORT CARD TRIGGER) ---
-                        case PHASES.ACTION:
+                        case PHASES.ACTION: {  // <--- ADD THIS OPENING BRACE
                             const academicTurns = [1, 2, 3, 4, 6, 7, 9, 11];
                             const isAcademic = academicTurns.includes(state.turn);
                             
-                            // SNAPSHOT: Capture points and semester before the logic wipes them
                             const prevStudy = state.stats.Study;
                             const prevSem = state.semester;
 
-                            Logic.calculateSemesterSPI(); // <--- TRIGGERS THE NEW GRADING ENGINE
+                            Logic.calculateSemesterSPI(); 
                             
-                            // Retrieve the SPI that was just generated
                             const earnedSPI = isAcademic && state.spiHistory.length > 0 ? state.spiHistory[state.spiHistory.length - 1] : 0;
                             
-                            // Advance the clock to the next phase
                             state.phase = PHASES.NARRATIVE;
                             state.turn++;
                             
                             const turnToSem = {
                                 1: 1, 2: 2, 3: 3, 4: 4, 
-                                5: 4, // Interlude
-                                6: 5, 7: 6, 
-                                8: 6, // Summer
-                                9: 7, 
-                                10: 8, // Placements happen before Sem 8 actually starts
-                                11: 8
+                                5: 4, 6: 5, 7: 6, 8: 6, 9: 7, 10: 8, 11: 8
                             };
                             state.semester = turnToSem[state.turn] || 8; 
                             
-                            // CENTRALIZED ALLOCATION (Existing code)
                             state.blocksRemaining = Logic.getBlocksForTurn(state.turn); 
 
-                            // --- SYNC: SOCIAL MAINTENANCE INTERCEPTOR ---
-                            if (isAcademic && state.network.length > 0) {
-                                state.activeNetwork = []; // Clear active buffs for the new semester
-                                
-                                // 1. Render Report Card FIRST (behind the modal)
-                                document.body.insertAdjacentHTML('beforeend', UI.renderReportCardModal(prevSem, prevStudy, earnedSPI, state.stats.CPI));
-                                
-                                // 2. Render Maintenance Modal HTML
-                                document.body.insertAdjacentHTML('beforeend', UI.renderSocialMaintenanceModal(state.network, state.blocksRemaining));
-                                
-                                // 3. NEW: Explicitly bind the DOM listeners now that the HTML exists
-                                UI.bindMaintenanceModalListeners(state.blocksRemaining);
-                                
-                                return; // EXIT advancePhase EARLY! Game resumes on Confirm.
-                            }
-                            // --------------------------------------------
-
-                            // INTERCEPT: After Sem 7 finishes (Turn 10 starts) -> Trigger Placements
                             if (state.turn === 10) {
                                 state.phase = PHASES.PLACEMENT;
                                 state.placementStep = 1;
                                 state.semester = "Placement"; 
-                                
                                 this.startPlacement();
                             } else {
                                 this.startNarrative();
                             }
                             
-                            this.syncHUD(); // Sync HUD for the new phase
+                            this.syncHUD(); 
 
-                            // RENDER THE REPORT CARD (on top of the new phase UI)
+                            // ONLY SHOW REPORT CARD HERE
                             if (isAcademic) {
                                 document.body.insertAdjacentHTML('beforeend', UI.renderReportCardModal(prevSem, prevStudy, earnedSPI, state.stats.CPI));
                             }
                             break;
-
+                        } // <--- ADD THIS CLOSING BRACE
+                        
                         case PHASES.PLACEMENT:
                             if (state.placementStep === 1) {
                                 state.placementStep = 2;
@@ -391,15 +413,13 @@ const Controller = {
 
                     state.blocksRemaining -= totalCost;
                     state.activeNetwork = selectedIds; 
-                    state.maintenanceDoneForTurn = state.turn; // Flag to prevent infinite looping
+                    state.maintenanceDoneForTurn = state.turn; // Marks that we paid for this semester
 
                     const modal = document.getElementById('social-maintenance-modal');
                     if (modal) modal.remove();
 
-                    // Apply the Semester Bonuses and get the UI log
+                    // Apply stats directly from CSV and show the Summary Screen
                     const summaryData = Logic.applyMaintenanceRewards(selectedIds);
-
-                    // Show the Summary Popup
                     document.body.insertAdjacentHTML('beforeend', UI.renderMaintenanceSummaryModal(summaryData, totalCost));
                 },
 
@@ -407,12 +427,11 @@ const Controller = {
                     const modal = document.getElementById('maintenance-summary-modal');
                     if (modal) modal.remove();
 
-                    // Resume Game Loop into the Narrative
-                    this.startNarrative();
-                    state.phase = PHASES.FRICTION; // Queue up friction next
+                    // Resume Game Loop into the Friction phase!
+                    state.phase = PHASES.FRICTION;
+                    this.startFriction();
                     this.syncHUD();
-                }
-
+                },
 
 
 

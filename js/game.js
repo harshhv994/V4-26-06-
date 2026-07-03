@@ -19,7 +19,8 @@
                 selectSummer: function(choice) { Controller.handleSummerSelection(choice); },
                 closeTutorial: function() { Controller.closeTutorial(); },
                 closeReportCard: function() { Controller.closeReportCard(); },
-                confirmMaintenance: function(ids, cost) { Controller.handleSocialMaintenanceConfirm(ids, cost); }
+                confirmMaintenance: function(ids, cost) { Controller.handleSocialMaintenanceConfirm(ids, cost); },
+                confirmMaintenanceSummary: function() { Controller.handleMaintenanceSummaryConfirm(); },
                 
             };
 

@@ -403,7 +403,46 @@
                         };
                         return getCTC(b.company['Est. CTC']) - getCTC(a.company['Est. CTC']);
                     })[0].company;
-                } 
+                },
+                // --- NEW: SEMESTER BONUS MODEL ---
+                applyMaintenanceRewards: function(selectedIds) {
+                    let summary = []; 
+                    
+                    selectedIds.forEach(id => {
+                        const card = db.social.find(s => s.ID === id);
+                        if (card) {
+                            let friendSummary = { name: card['Card Name'], rewards: [] };
+
+                            const rHealth = parseInt(card.Reward_Health) || 0;
+                            const rStudy = parseInt(card.Reward_Study) || 0;
+                            const rSocial = parseInt(card.Reward_Social) || 0;
+                            const rMoney = parseInt(card.Reward_Money) || 0;
+                            const rStress = parseInt(card.Reward_Stress) || 0; 
+                            
+                            const rAlgo = parseInt(card.Reward_Algo) || 0;
+                            const rPOR = parseInt(card.Reward_POR) || 0;
+                            const rRes = parseInt(card.Reward_Res) || 0;
+                            const rProd = parseInt(card.Reward_Prod) || 0;
+
+                            // Apply stats
+                            if (rHealth > 0) { state.stats.Health += rHealth; friendSummary.rewards.push(`❤️ +${rHealth}`); }
+                            if (rStudy > 0) { state.stats.Study += rStudy; friendSummary.rewards.push(`📚 +${rStudy}`); }
+                            if (rSocial > 0) { state.stats.Social += rSocial; friendSummary.rewards.push(`🤝 +${rSocial}`); }
+                            if (rMoney > 0) { state.stats.Money += rMoney; friendSummary.rewards.push(`💰 +${rMoney}`); }
+                            if (rStress > 0) { state.stats.Stress -= rStress; friendSummary.rewards.push(`😌 -${rStress} Stress`); }
+
+                            if (rAlgo > 0) { state.resume.Algorithm += rAlgo; friendSummary.rewards.push(`💻 +${rAlgo} Algo`); }
+                            if (rPOR > 0) { state.resume.POR += rPOR; friendSummary.rewards.push(`👑 +${rPOR} POR`); }
+                            if (rRes > 0) { state.resume.Research += rRes; friendSummary.rewards.push(`🔬 +${rRes} Res`); }
+                            if (rProd > 0) { state.resume.Product += rProd; friendSummary.rewards.push(`🚀 +${rProd} Prod`); }
+
+                            if (friendSummary.rewards.length > 0) summary.push(friendSummary);
+                        }
+                    });
+
+                    this.clampStats(); 
+                    return summary;
+                }
                 
 
 
