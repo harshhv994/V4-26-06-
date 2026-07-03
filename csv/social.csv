@@ -1,22 +1,22 @@
-ID,Type,Card Name,Category,Sem_Start,Sem_End,Cost_Time,Cost_Health,Cost_Study,Cost_Social,Cost_Money,Cost_Stress,Req_Prerequisite,Reward_Algo,Reward_POR,Reward_Res,Reward_Prod,Reward_Health,Reward_Study,Reward_Social,Reward_Money,Reward_Stress,Passive_Effect,Trigger,Trigger_Value,Effect,Effect_Value,Frequency
-SC01,SOCIAL,Hostel Wingmate,Hostel,1,8,2,0,0,1,0,0,None,0,0,0,0,1,0,1,0,2,Stress reaches max -> +2 Stress absorbed (once per semester),STRESS_BUILDUP,EXCEEDS_MAX,STRESS,-2,SEMESTER
-SC02,SOCIAL,Freshers' Group,Hostel,1,2,1,0,0,2,0,0,None,0,0,0,0,0,0,3,0,1,Any Social action -> +1 Social (Sems 1–2 only),SOCIAL_ACTION,ALWAYS,SOCIAL,1,SEMESTER
-SC03,SOCIAL,Night Owl Friend,Hostel,1,8,1,1,1,0,0,0,None,0,0,0,0,0,2,1,0,0,Study action after 10 PM -> +1 Study (once per week),STUDY_ACTION,LATE_NIGHT,STUDY,1,SEMESTER
-SC04,SOCIAL,Helpful Batchmate,Academic,1,8,1,0,0,1,0,0,None,0,0,0,0,0,2,0,0,1,Exam week Study action -> -1 Time cost (once per exam week),STUDY_ACTION,DURING_SEM7_PLACEMENT_RUSH,TIME,-1,SEMESTER
-SC05,SOCIAL,Open Elective Friend,Academic,2,6,1,0,0,1,0,0,None,0,0,0,0,0,1,2,0,0,Elective or cross-dept Study action -> +1 Study,STUDY_ACTION,ELECTIVE_OR_CROSS_DEPT,STUDY,1,SEMESTER
-SC06,SOCIAL,Department Senior,Academic,2,5,2,0,0,1,0,0,None,0,0,0,0,0,2,0,0,1,Dept-specific Project started -> -1 Time cost,PROJECT_START,DEPT_SPECIFIC,TIME,-1,SEMESTER
-SC07,SOCIAL,Teaching Assistant,Academic,2,6,2,0,1,0,0,0,None,0,0,0,0,0,3,0,0,1,Every 3rd Study action in a semester -> +1 Study (bonus),STUDY_ACTION_COUNT,EVERY_3RD,STUDY,1,SEMESTER
-SC08,SOCIAL,Research Professor,Academic,2,8,2,0,2,0,0,1,None,0,0,0,0,0,2,0,1,0,Research activity -> -1 Stress cost,RESEARCH_ACTIVITY,ALWAYS,STRESS,-1,SEMESTER
-SC09,SOCIAL,Research Supervisor,Academic,4,8,2,1,3,0,0,0,Research Professor,0,0,0,0,0,2,0,2,0,Completed Research Project -> +1 Study +1 Money,PROJECT_COMPLETE,RESEARCH,STUDY_MONEY,"+1,+1",SEMESTER
-SC10,SOCIAL,Club Senior,Leadership,2,4,2,0,0,2,0,0,None,0,0,0,0,0,0,3,1,1,POR maintenance -> -1 Time cost,POR_MAINTENANCE,ALWAYS,TIME,-1,SEMESTER
-SC11,SOCIAL,Festival Mentor,Leadership,4,6,2,0,0,2,0,1,Club Senior,0,0,0,0,1,0,3,1,0,Social action during festival month -> +1 Social,SOCIAL_ACTION,DURING_SEM5_FESTS,SOCIAL,1,SEMESTER
-SC12,SOCIAL,Gymkhana Mentor,Leadership,3,6,2,0,0,2,0,0,None,0,0,0,0,1,0,2,0,2,Health action -> +1 Health,HEALTH_ACTION,ALWAYS,HEALTH,1,SEMESTER
-SC13,SOCIAL,SPO Officer,Career,5,7,2,0,0,2,0,1,None,0,0,0,0,0,0,0,1,1,Placement preparation action -> -1 Stress cost,PLACEMENT_PREP,DURING_SEM7,STRESS,-1,SEMESTER
-SC14,SOCIAL,Industry Mentor,Career,5,8,2,0,0,1,1,0,None,0,0,0,0,0,1,0,1,1,Internship application -> -1 Time cost,INTERNSHIP_APP,DURING_INTERLUDE,TIME,-1,SEMESTER
-SC15,SOCIAL,Startup Founder Senior,Career,4,8,2,0,0,1,0,1,None,0,0,0,0,0,1,0,2,0,Completed Project -> +1 Money,PROJECT_COMPLETE,ANY,MONEY,1,SEMESTER
-SC16,SOCIAL,Placement Coordinator,Career,7,8,2,0,0,2,0,1,SPO Officer,0,0,0,0,0,0,0,2,1,Mock interview or placement prep -> +1 Study,PLACEMENT_PREP,DURING_SEM7,STUDY,1,SEMESTER
-SC17,SOCIAL,Mess Committee Friend,Hostel,1,8,1,0,0,1,0,0,None,0,0,0,0,1,0,0,1,1,Health action -> +1 Health −1 Money cost,HEALTH_ACTION,ALWAYS,HEALTH_MONEY,"+1,-1",SEMESTER
-SC18,SOCIAL,Supportive Partner,Personal,7,8,3,0,0,1,2,0,None,0,0,0,0,2,0,2,0,3,Start of each month -> +1 Stress recovered (automatic),SEMESTER_START,ALWAYS,STRESS,-1,SEMESTER
-SC19,SOCIAL,Toxic Relationship,Personal,1,8,2,2,1,0,0,2,None,0,0,0,0,0,0,1,1,0,Each semester (50% chance) -> Lose 2 Time OR Lose 2 Study (random),RANDOM_SETBACK,50_PERCENT_CHANCE,TIME_STUDY,"-2,-2",SEMESTER
-SC20,SOCIAL,Jugaad Friend,Personal,1,8,1,0,0,1,0,0,None,0,0,0,0,0,0,0,2,1,Any activity with Money cost ≥ 1 -> -1 Money cost,ACTIVITY_WITH_COST,MONEY_COST_GTE_1,MONEY,-1,SEMESTER
-SC21,SOCIAL,Lifelong Friend,Personal,7,8,2,0,0,2,0,0,Any Hostel card ×5 sems,0,0,0,0,2,0,2,1,3,Once per semester -> Convert 2 Social → 2 Study,SEMESTER_MILESTONE,SEM_TRANSITIONS,CONVERT_SOCIAL_TO_STUDY,"2,2",SEMESTER
+ID,Type,Card Name,Category,Sem_Start,Sem_End,Cost_Time,Cost_Health,Cost_Study,Cost_Social,Cost_Money,Cost_Stress,Req_Prerequisite,Reward_Algo,Reward_POR,Reward_Res,Reward_Prod,Reward_Health,Reward_Study,Reward_Social,Reward_Money,Reward_Stress
+SC01,SOCIAL,Hostel Wingmate,Hostel,1,8,0,0,0,0,0,0,None,0,0,0,0,1,0,1,0,1
+SC02,SOCIAL,Freshers' Group,Hostel,1,2,0,0,0,0,0,0,None,0,0,0,0,0,0,2,0,1
+SC03,SOCIAL,Night Owl Friend,Hostel,1,8,0,0,0,0,0,0,None,0,0,0,0,0,2,0,0,1
+SC04,SOCIAL,Helpful Batchmate,Academic,1,8,0,0,0,0,0,0,None,0,0,0,0,1,2,0,0,0
+SC05,SOCIAL,Open Elective Friend,Academic,2,6,0,0,0,0,0,0,None,0,0,0,0,0,1,1,0,0
+SC06,SOCIAL,Department Senior,Academic,2,5,0,0,0,0,0,0,None,1,0,0,0,0,0,1,0,0
+SC07,SOCIAL,Teaching Assistant,Academic,2,6,0,0,0,0,0,0,None,0,0,1,0,0,2,0,0,0
+SC08,SOCIAL,Research Professor,Academic,2,8,0,0,0,0,0,0,None,0,0,1,0,0,1,1,0,0
+SC09,SOCIAL,Research Supervisor,Academic,4,8,0,0,0,0,0,0,Research Professor,0,0,2,0,0,0,0,0,1
+SC10,SOCIAL,Club Senior,Leadership,2,4,0,0,0,0,0,0,None,0,1,0,0,0,0,1,0,0
+SC11,SOCIAL,Festival Mentor,Leadership,4,6,0,0,0,0,0,0,Club Senior,0,2,0,0,0,0,0,0,1
+SC12,SOCIAL,Gymkhana Mentor,Leadership,3,6,0,0,0,0,0,0,None,0,0,0,0,1,0,2,0,0
+SC13,SOCIAL,SPO Officer,Career,5,7,0,0,0,0,0,0,None,0,0,0,1,0,0,1,0,1
+SC14,SOCIAL,Industry Mentor,Career,5,8,0,0,0,0,0,0,None,1,0,0,1,0,0,0,0,0
+SC15,SOCIAL,Startup Founder Senior,Career,4,8,0,0,0,0,0,0,None,0,0,0,2,0,0,0,1,0
+SC16,SOCIAL,Placement Coordinator,Career,7,8,0,0,0,0,0,0,SPO Officer,0,0,0,0,0,2,0,0,2
+SC17,SOCIAL,Mess Committee Friend,Hostel,1,8,0,0,0,0,0,0,None,0,0,0,0,1,0,0,1,0
+SC18,SOCIAL,Supportive Partner,Personal,7,8,0,0,0,0,0,0,None,0,0,0,0,1,0,0,0,2
+SC19,SOCIAL,Intense Rivalry,Personal,1,8,0,0,0,0,0,0,None,0,0,0,0,0,3,0,0,1
+SC20,SOCIAL,Jugaad Friend,Personal,1,8,0,0,0,0,0,0,None,0,0,0,0,0,0,0,1,1
+SC21,SOCIAL,Lifelong Friend,Personal,7,8,0,0,0,0,0,0,Any Hostel card �5 sems,0,0,0,0,2,0,0,0,1

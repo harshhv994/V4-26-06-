@@ -1,255 +1,280 @@
 // --- 3. UI LAYER (Rendering) ---
-            const UI = {
-                updateHUD: function(stats, resume, turn, semester, blocks) {
-                    // Update Survival (Left Side)
-                    document.getElementById('survival-stats').innerHTML = `
-                        <div class="stat-box">❤️ Health: ${Math.max(0, stats.Health)}</div>
-                        <div class="stat-box">👥 Social: ${stats.Social}</div>
-                        <div class="stat-box">🤯 Stress: ${stats.Stress}</div>
-                        <div class="stat-box" style="border-color: var(--accent-blue); color: var(--accent-blue);">📚 Study: ${stats.Study}</div>
-                        <div class="stat-box">💵 Money: ₹${stats.Money}</div>
-                    `;
-                    
-                    // Update Resume (Right Side)
-                    document.getElementById('resume-stats').innerHTML = `
-                        <div class="stat-box" style="border-color: var(--accent-gold); color: var(--accent-gold);">📈 CPI: ${(stats.CPI || 0).toFixed(2)}</div>
-                        <div class="stat-box">🏅 POR: ${resume.Positions}</div>
-                        <div class="stat-box">🔬 Research: ${resume.Research}</div>
-                        <div class="stat-box">🎨 Product: ${resume.Product}</div>
-                        <div class="stat-box">💼 Work: ${resume.Internships}</div>
-                    `;
-                    
-                    // Update Time Panel (NEW LOGIC)
-                    let blockText = '';
-                    const narrativeTurns = [5, 8, 10]; // Interlude, Summer, Placement
-                    
-                    if (narrativeTurns.includes(turn)) {
-                        blockText = `Blocks: 0`;
-                    } else {
-                        blockText = `<span class="tooltip" style="border-bottom: 1px dashed #888; cursor: help;">⏱️ ${blocks} / ${GAME_CONFIG.TIME_BLOCKS_PER_SEMESTER} Available<span class="tooltip-text"><strong style="color: var(--accent-blue);">Healthy Time Management</strong><br><br>A week contains 24 blocks (168 hrs). 7 are automatically reserved for healthy sleep.<br><br>You have ${GAME_CONFIG.TIME_BLOCKS_PER_SEMESTER} discretionary blocks to spend.</span></span>`;
-                    }
+const UI = {
+    updateHUD: function(stats, resume, turn, semester, blocks) {
+        // Update Survival (Left Side)
+        document.getElementById('survival-stats').innerHTML = `
+            <div class="stat-box">❤️ Health: ${Math.max(0, stats.Health)}</div>
+            <div class="stat-box">👥 Social: ${stats.Social}</div>
+            <div class="stat-box">🤯 Stress: ${stats.Stress}</div>
+            <div class="stat-box" style="border-color: var(--accent-blue); color: var(--accent-blue);">📚 Study: ${stats.Study}</div>
+            <div class="stat-box">💵 Money: ₹${stats.Money}</div>
+        `;
+        
+        // Update Resume (Right Side)
+        document.getElementById('resume-stats').innerHTML = `
+            <div class="stat-box" style="border-color: var(--accent-gold); color: var(--accent-gold);">📈 CPI: ${(stats.CPI || 0).toFixed(2)}</div>
+            <div class="stat-box">🏅 POR: ${resume.Positions}</div>
+            <div class="stat-box">🔬 Research: ${resume.Research}</div>
+            <div class="stat-box">🎨 Product: ${resume.Product}</div>
+            <div class="stat-box">💼 Work: ${resume.Internships}</div>
+        `;
+        
+        // Update Time Panel
+        let blockText = '';
+        const narrativeTurns = [5, 8, 10]; // Interlude, Summer, Placement
+        
+        if (narrativeTurns.includes(turn)) {
+            blockText = `Blocks: 0`;
+        } else {
+            blockText = `<span class="tooltip" style="border-bottom: 1px dashed #888; cursor: help;">⏱️ ${blocks} / ${GAME_CONFIG.TIME_BLOCKS_PER_SEMESTER} Available<span class="tooltip-text"><strong style="color: var(--accent-blue);">Healthy Time Management</strong><br><br>A week contains 24 blocks (168 hrs). 7 are automatically reserved for healthy sleep.<br><br>You have ${GAME_CONFIG.TIME_BLOCKS_PER_SEMESTER} discretionary blocks to spend.</span></span>`;
+        }
 
-                    document.getElementById('time-tracker').innerHTML = `Sem ${semester} | Turn ${turn} | ${blockText}`;
-                },
+        document.getElementById('time-tracker').innerHTML = `Sem ${semester} | Turn ${turn} | ${blockText}`;
+    },
 
-                renderTutorialModal: function() {
-                    return `
-                        <div id="time-tutorial-modal" class="modal-overlay">
-                            <div class="modal-content">
-                                <h2 style="color: var(--accent-blue); margin-bottom: 15px;">🛌 Healthy Time Management</h2>
-                                <p style="color: var(--text-main); margin-bottom: 15px; line-height: 1.6; text-align: left;">
-                                    Every semester simulates one week of student life.<br><br>
-                                    A week contains <strong>24 time blocks</strong> (168 hours).<br>
-                                    To encourage realistic planning, <strong style="color: var(--accent-green);">7 blocks are automatically reserved for sleep.</strong><br><br>
-                                    You begin each semester with <strong>${GAME_CONFIG.TIME_BLOCKS_PER_SEMESTER} available blocks</strong> to spend on academics, projects, clubs, networking, fitness, and campus life.<br><br>
-                                    <span style="color: var(--text-muted); font-style: italic;">Manage them wisely—once they're gone, the semester ends.</span>
-                                </p>
-                                <button class="modal-btn" onclick="CampusSimulator.closeTutorial()">Understood</button>
-                            </div>
+    renderTutorialModal: function() {
+        return `
+            <div id="time-tutorial-modal" class="modal-overlay">
+                <div class="modal-content">
+                    <h2 style="color: var(--accent-blue); margin-bottom: 15px;">🛌 Healthy Time Management</h2>
+                    <p style="color: var(--text-main); margin-bottom: 15px; line-height: 1.6; text-align: left;">
+                        Every semester simulates one week of student life.<br><br>
+                        A week contains <strong>24 time blocks</strong> (168 hours).<br>
+                        To encourage realistic planning, <strong style="color: var(--accent-green);">7 blocks are automatically reserved for sleep.</strong><br><br>
+                        You begin each semester with <strong>${GAME_CONFIG.TIME_BLOCKS_PER_SEMESTER} available blocks</strong> to spend on academics, projects, clubs, networking, fitness, and campus life.<br><br>
+                        <span style="color: var(--text-muted); font-style: italic;">Manage them wisely—once they're gone, the semester ends.</span>
+                    </p>
+                    <button class="modal-btn" onclick="CampusSimulator.closeTutorial()">Understood</button>
+                </div>
+            </div>
+        `;
+    },
+
+    renderReportCardModal: function(semester, studyPoints, spi, cpi) {
+        return `
+            <div id="report-card-modal" class="modal-overlay" style="animation: fadeIn 0.3s ease-out;">
+                <div class="modal-content" style="max-width: 450px; animation: popIn 0.4s ease-out; border: 1px solid var(--accent-gold);">
+                    <h2 style="color: var(--accent-gold); margin-bottom: 10px; font-size: 1.8em;">🎓 Semester Report</h2>
+                    <p style="color: var(--text-muted); font-size: 1.1em; margin-bottom: 20px;">Semester ${semester} Completed</p>
+                    
+                    <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 1.2em;">
+                            <span>📚 Study Points</span>
+                            <span style="color: var(--accent-blue); font-weight: bold;">${studyPoints} / 70</span>
                         </div>
-                    `;
-                },
-                renderReportCardModal: function(semester, studyPoints, spi, cpi) {
-                    return `
-                        <div id="report-card-modal" class="modal-overlay" style="animation: fadeIn 0.3s ease-out;">
-                            <div class="modal-content" style="max-width: 450px; animation: popIn 0.4s ease-out; border: 1px solid var(--accent-gold);">
-                                <h2 style="color: var(--accent-gold); margin-bottom: 10px; font-size: 1.8em;">🎓 Semester Report</h2>
-                                <p style="color: var(--text-muted); font-size: 1.1em; margin-bottom: 20px;">Semester ${semester} Completed</p>
-                                
-                                <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 1.2em;">
-                                        <span>📚 Study Points</span>
-                                        <span style="color: var(--accent-blue); font-weight: bold;">${studyPoints} / 70</span>
-                                    </div>
-                                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 1.2em;">
-                                        <span>🎯 Semester SPI</span>
-                                        <span style="color: var(--accent-green); font-weight: bold;">${spi.toFixed(2)}</span>
-                                    </div>
-                                    <div style="display: flex; justify-content: space-between; font-size: 1.2em; border-top: 1px solid #444; padding-top: 12px;">
-                                        <span>📈 Current CPI</span>
-                                        <span style="color: var(--accent-gold); font-weight: bold;">${cpi.toFixed(2)}</span>
-                                    </div>
-                                </div>
-                                
-                                <div style="background: rgba(74, 144, 226, 0.1); border-left: 3px solid var(--accent-blue); padding: 15px; text-align: left; margin-bottom: 25px; border-radius: 4px;">
-                                    <div style="font-weight: bold; color: var(--accent-blue); margin-bottom: 8px;">💡 Academic Insight</div>
-                                    <div style="font-size: 0.85em; color: var(--text-main); line-height: 1.5;">
-                                        Your Study Points represent the total academic effort invested throughout the semester, including lectures, tutorials, assignments, quizzes, labs, course projects, and exam preparation.<br><br>
-                                        A perfect 10.00 SPI requires 70 Study Points, reflecting consistent academic effort across the entire semester—not just classroom attendance.
-                                    </div>
-                                </div>
-                                
-                                <button class="modal-btn" style="width: 100%; background: var(--accent-gold); color: black;" onclick="CampusSimulator.closeReportCard()">Continue →</button>
-                            </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 1.2em;">
+                            <span>🎯 Semester SPI</span>
+                            <span style="color: var(--accent-green); font-weight: bold;">${spi.toFixed(2)}</span>
                         </div>
-                    `;
-                },
-                renderSocialMaintenanceModal: function(networkList, availableBlocks) {
-                    
-                    const friendsHTML = networkList.map(conn => {
-                        // SMART LOOKUP: Double-checks the CSV database if the state is missing the cost
-                        let cost = conn.maintenanceCost;
-                        if (!cost) {
-                            const csvData = db.social.find(s => s.ID === conn.id);
-                            cost = csvData ? (parseInt(csvData.Maintenance_Cost) || parseInt(csvData.Cost_Time) || 1) : 1;
-                        }
-
-                        return `
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">
-                                <label style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                                    <input type="checkbox" class="social-checkbox" value="${conn.id}" data-cost="${cost}" checked>
-                                    <span style="color: var(--text-main); font-weight: bold;">${conn.name}</span>
-                                </label>
-                                <span style="color: var(--accent-blue); font-size: 0.9em;">${cost} Block(s)</span>
-                            </div>
-                        `;
-                    }).join('');
-
-                    return `
-                        <div id="social-maintenance-modal" class="modal-overlay" style="z-index: 10000; animation: fadeIn 0.3s ease-out;">
-                            <div class="modal-content" style="max-width: 400px; border: 1px solid var(--accent-purple);">
-                                <h2 style="color: var(--accent-purple); margin-bottom: 15px;">🤝 Maintain Network</h2>
-                                <p style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 20px;">
-                                    Friendships require time. Select who to spend time with this semester. Inactive friends grant no passive bonuses.
-                                </p>
-                                
-                                <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; text-align: left; max-height: 250px; overflow-y: auto;">
-                                    ${friendsHTML}
-                                </div>
-                                
-                                <div style="margin-top: 20px; font-size: 1.1em; font-weight: bold;">
-                                    Total Cost: <span id="maintenance-cost-display">0</span> / ${availableBlocks} Blocks
-                                </div>
-                                
-                                <button id="maintenance-confirm-btn" class="modal-btn" style="width: 100%; background: var(--accent-purple);">
-                                    Confirm Investments
-                                </button>
-                            </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 1.2em; border-top: 1px solid #444; padding-top: 12px;">
+                            <span>📈 Current CPI</span>
+                            <span style="color: var(--accent-gold); font-weight: bold;">${cpi.toFixed(2)}</span>
                         </div>
-                    `;
-                },
-
-                // NEW: This explicitly attaches the listeners after the modal is drawn
-                bindMaintenanceModalListeners: function(availableBlocks) {
-                    const checkboxes = document.querySelectorAll('.social-checkbox');
-                    const costDisplay = document.getElementById('maintenance-cost-display');
-                    const confirmBtn = document.getElementById('maintenance-confirm-btn');
-
-                    const updateTotal = () => {
-                        let total = 0;
-                        checkboxes.forEach(cb => { 
-                            if (cb.checked) total += parseInt(cb.dataset.cost); 
-                        });
-                        
-                        costDisplay.innerText = total;
-                        
-                        // Validation logic
-                        if (total > availableBlocks) {
-                            costDisplay.style.color = 'var(--accent-red)';
-                            confirmBtn.disabled = true;
-                            confirmBtn.style.opacity = '0.5';
-                            confirmBtn.style.cursor = 'not-allowed';
-                        } else {
-                            costDisplay.style.color = 'var(--text-main)';
-                            confirmBtn.disabled = false;
-                            confirmBtn.style.opacity = '1';
-                            confirmBtn.style.cursor = 'pointer';
-                        }
-                    };
-
-                    // Listen for every time a user toggles a checkbox
-                    checkboxes.forEach(cb => cb.addEventListener('change', updateTotal));
+                    </div>
                     
-                    // Listen for the final submission
-// Listen for the final submission
-                    confirmBtn.addEventListener('click', (e) => {
-                        e.preventDefault(); // Prevent any default button behavior
-                        
-                        let selected = [];
-                        let totalCost = 0;
-                        checkboxes.forEach(cb => {
-                            if (cb.checked) {
-                                selected.push(cb.value);
-                                totalCost += parseInt(cb.dataset.cost);
-                            }
-                        });
-                        
-                        // Direct routing: Bypasses game.js and hits the Controller directly
-                        if (typeof Controller !== 'undefined' && typeof Controller.handleSocialMaintenanceConfirm === 'function') {
-                            Controller.handleSocialMaintenanceConfirm(selected, totalCost);
-                        } else {
-                            alert("System Error: Cannot find handleSocialMaintenanceConfirm. Make sure it was placed inside the Controller object in controller.js!");
-                            console.error("Handler missing in Controller.");
-                        }
-                    });
-
-                    // Trigger once immediately on load to calculate the default checked cost
-                    updateTotal();
-                },
-
-                updateEventLog: function(logs) {
-                    const logHTML = logs.map(log => {
-                        let color = 'var(--text-muted)';
-                        if (log.type === 'opportunity') color = 'var(--accent-gold)';
-                        if (log.type === 'friction') color = 'var(--accent-red)';
-                        if (log.type === 'location') color = 'var(--accent-blue)';
-
-                        let effectsHTML = '';
-                        for (const [stat, value] of Object.entries(log.effects)) {
-                            const isPositive = value > 0;
-                            const sign = isPositive ? '+' : '';
-                            
-                            let pillColor = 'var(--text-muted)';
-                            if (['Health', 'Social', 'Study', 'Money'].includes(stat)) {
-                                pillColor = isPositive ? 'var(--accent-green)' : 'var(--accent-red)';
-                            } else if (['Stress', 'Time'].includes(stat)) {
-                                pillColor = isPositive ? 'var(--accent-red)' : 'var(--accent-green)';
-                            }
-
-                            effectsHTML += `<span style="display:inline-block; margin-right: 5px; margin-top: 5px; font-size: 0.75em; padding: 2px 6px; border-radius: 4px; background: rgba(0,0,0,0.3); border: 1px solid ${pillColor}; color: ${pillColor}; font-weight: bold;">${sign}${value} ${stat}</span>`;
-                        }
-
-                        return `
-                            <div style="margin-bottom: 15px; border-left: 3px solid ${color}; padding: 8px 10px; background: rgba(255,255,255,0.02); border-radius: 0 8px 8px 0;">
-                                <div style="font-size: 0.75em; color: var(--text-muted); text-transform: uppercase;">Sem ${log.semester} | Turn ${log.turn}</div>
-                                <div style="font-size: 1.05em; font-weight: bold; margin-top: 4px; color: ${color};">
-                                    ${log.icon} ${log.title}
-                                </div>
-                                <div>${effectsHTML}</div>
-                            </div>
-                        `;
-                    }).join('');
-
-                    document.getElementById('event-log').innerHTML = logHTML;
-                },
-
-                updateNetworkPanel: function(network) {
-                    const container = document.getElementById('active-connections');
-                    if (!container) return; // Safety check
-                    
-                    if (network.length === 0) {
-                        container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9em; font-style: italic;">No connections yet. Visit locations to meet people.</p>`;
-                        return;
-                    }
-
-                    container.innerHTML = network.map(conn => `
-                        <div style="background: #2a2a2a; border-left: 3px solid var(--accent-green); padding: 10px; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                            <div style="font-weight: bold; font-size: 1.05em; color: var(--text-main);">🤝 ${conn.name}</div>
-                            <div style="font-size: 0.75em; color: var(--accent-blue); text-transform: uppercase; margin-top: 3px; letter-spacing: 0.5px;">${conn.category}</div>
-                            <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 6px; line-height: 1.3;">${conn.passiveDesc}</div>
+                    <div style="background: rgba(74, 144, 226, 0.1); border-left: 3px solid var(--accent-blue); padding: 15px; text-align: left; margin-bottom: 25px; border-radius: 4px;">
+                        <div style="font-weight: bold; color: var(--accent-blue); margin-bottom: 8px;">💡 Academic Insight</div>
+                        <div style="font-size: 0.85em; color: var(--text-main); line-height: 1.5;">
+                            Your Study Points represent the total academic effort invested throughout the semester, including lectures, tutorials, assignments, quizzes, labs, course projects, and exam preparation.<br><br>
+                            A perfect 10.00 SPI requires 70 Study Points, reflecting consistent academic effort across the entire semester—not just classroom attendance.
                         </div>
-                    `).join('');
-                },
+                    </div>
+                    
+                    <button class="modal-btn" style="width: 100%; background: var(--accent-gold); color: black;" onclick="CampusSimulator.closeReportCard()">Continue →</button>
+                </div>
+            </div>
+        `;
+    },
 
-                updateNarrativeSidePanel: function(phase, vibe) {
-                    document.getElementById('current-phase').textContent = phase;
-                    document.getElementById('phase-vibe').textContent = vibe;
-                },
+    // --- REFACTORED: SOCIAL MAINTENANCE UI ---
+    renderSocialMaintenanceModal: function(networkList, availableBlocks) {
+        const friendsHTML = networkList.map(conn => {
+            const cost = 1; // STRICTLY HARDCODED TO 1 TIME BLOCK
 
-                updateBoard: function(html) {
-                    document.getElementById('board-panel').innerHTML = html;
-                },
-                renderInterlude: function(interns) {
+            return `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">
+                    <label style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" class="social-checkbox" value="${conn.id}" data-cost="${cost}" checked>
+                        <span style="color: var(--text-main); font-weight: bold;">${conn.name}</span>
+                    </label>
+                    <span style="color: var(--accent-blue); font-size: 0.9em;">${cost} Block</span>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div id="social-maintenance-modal" class="modal-overlay" style="z-index: 10000; animation: fadeIn 0.3s ease-out;">
+                <div class="modal-content" style="max-width: 400px; border: 1px solid var(--accent-purple);">
+                    <h2 style="color: var(--accent-purple); margin-bottom: 15px;">🤝 Maintain Network</h2>
+                    <p style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 20px;">
+                        Friendships require time. Select who to spend time with this semester. Inactive friends grant no bonuses.
+                    </p>
+                    
+                    <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; text-align: left; max-height: 250px; overflow-y: auto;">
+                        ${friendsHTML}
+                    </div>
+                    
+                    <div style="margin-top: 20px; font-size: 1.1em; font-weight: bold;">
+                        Total Cost: <span id="maintenance-cost-display">0</span> / ${availableBlocks} Blocks
+                    </div>
+                    
+                    <button id="maintenance-confirm-btn" class="modal-btn" style="width: 100%; background: var(--accent-purple);">
+                        Confirm Investments
+                    </button>
+                </div>
+            </div>
+        `;
+    },
+
+    bindMaintenanceModalListeners: function(availableBlocks) {
+        const checkboxes = document.querySelectorAll('.social-checkbox');
+        const costDisplay = document.getElementById('maintenance-cost-display');
+        const confirmBtn = document.getElementById('maintenance-confirm-btn');
+
+        const updateTotal = () => {
+            let total = 0;
+            checkboxes.forEach(cb => { 
+                if (cb.checked) total += parseInt(cb.dataset.cost); 
+            });
+            
+            costDisplay.innerText = total;
+            
+            if (total > availableBlocks) {
+                costDisplay.style.color = 'var(--accent-red)';
+                confirmBtn.disabled = true;
+                confirmBtn.style.opacity = '0.5';
+                confirmBtn.style.cursor = 'not-allowed';
+            } else {
+                costDisplay.style.color = 'var(--text-main)';
+                confirmBtn.disabled = false;
+                confirmBtn.style.opacity = '1';
+                confirmBtn.style.cursor = 'pointer';
+            }
+        };
+
+        checkboxes.forEach(cb => cb.addEventListener('change', updateTotal));
+        
+        confirmBtn.addEventListener('click', (e) => {
+            e.preventDefault(); 
+            
+            let selected = [];
+            let totalCost = 0;
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    selected.push(cb.value);
+                    totalCost += parseInt(cb.dataset.cost);
+                }
+            });
+            
+            if (typeof Controller !== 'undefined' && typeof Controller.handleSocialMaintenanceConfirm === 'function') {
+                Controller.handleSocialMaintenanceConfirm(selected, totalCost);
+            } else {
+                alert("System Error: Cannot find handleSocialMaintenanceConfirm. Make sure it was placed inside the Controller object in controller.js!");
+                console.error("Handler missing in Controller.");
+            }
+        });
+
+        updateTotal();
+    },
+
+    // --- NEW: SEMESTER BONUS SUMMARY MODAL ---
+    renderMaintenanceSummaryModal: function(summaryData, totalCost) {
+        let summaryHTML = summaryData.map(friend => `
+            <div style="margin-bottom: 12px; border-bottom: 1px dashed #444; padding-bottom: 8px;">
+                <strong style="color: var(--text-main);">${friend.name}</strong><br>
+                <span style="color: var(--accent-green); font-size: 0.9em;">${friend.rewards.join(' | ')}</span>
+            </div>
+        `).join('');
+
+        if (summaryHTML === '') {
+            summaryHTML = `<p style="color: var(--text-muted);">No friendships maintained this semester.</p>`;
+        }
+
+        return `
+            <div id="maintenance-summary-modal" class="modal-overlay" style="z-index: 10000; animation: fadeIn 0.3s ease-out;">
+                <div class="modal-content" style="max-width: 400px; border: 1px solid var(--accent-purple);">
+                    <h2 style="color: var(--accent-purple); margin-bottom: 15px;">Friendships Maintained</h2>
+                    
+                    <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; text-align: left; max-height: 250px; overflow-y: auto;">
+                        ${summaryHTML}
+                    </div>
+                    
+                    <div style="margin-top: 20px; font-size: 1.1em; font-weight: bold;">
+                        Total Cost: <span style="color: var(--accent-red);">${totalCost} Time Blocks</span>
+                    </div>
+                    
+                    <button class="modal-btn" style="width: 100%; background: var(--accent-purple); margin-top: 15px;" onclick="CampusSimulator.confirmMaintenanceSummary()">
+                        Continue →
+                    </button>
+                </div>
+            </div>
+        `;
+    },
+
+    updateEventLog: function(logs) {
+        const logHTML = logs.map(log => {
+            let color = 'var(--text-muted)';
+            if (log.type === 'opportunity') color = 'var(--accent-gold)';
+            if (log.type === 'friction') color = 'var(--accent-red)';
+            if (log.type === 'location') color = 'var(--accent-blue)';
+
+            let effectsHTML = '';
+            for (const [stat, value] of Object.entries(log.effects)) {
+                const isPositive = value > 0;
+                const sign = isPositive ? '+' : '';
+                
+                let pillColor = 'var(--text-muted)';
+                if (['Health', 'Social', 'Study', 'Money'].includes(stat)) {
+                    pillColor = isPositive ? 'var(--accent-green)' : 'var(--accent-red)';
+                } else if (['Stress', 'Time'].includes(stat)) {
+                    pillColor = isPositive ? 'var(--accent-red)' : 'var(--accent-green)';
+                }
+
+                effectsHTML += `<span style="display:inline-block; margin-right: 5px; margin-top: 5px; font-size: 0.75em; padding: 2px 6px; border-radius: 4px; background: rgba(0,0,0,0.3); border: 1px solid ${pillColor}; color: ${pillColor}; font-weight: bold;">${sign}${value} ${stat}</span>`;
+            }
+
+            return `
+                <div style="margin-bottom: 15px; border-left: 3px solid ${color}; padding: 8px 10px; background: rgba(255,255,255,0.02); border-radius: 0 8px 8px 0;">
+                    <div style="font-size: 0.75em; color: var(--text-muted); text-transform: uppercase;">Sem ${log.semester} | Turn ${log.turn}</div>
+                    <div style="font-size: 1.05em; font-weight: bold; margin-top: 4px; color: ${color};">
+                        ${log.icon} ${log.title}
+                    </div>
+                    <div>${effectsHTML}</div>
+                </div>
+            `;
+        }).join('');
+
+        document.getElementById('event-log').innerHTML = logHTML;
+    },
+
+    updateNetworkPanel: function(network) {
+        const container = document.getElementById('active-connections');
+        if (!container) return; 
+        
+        if (network.length === 0) {
+            container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9em; font-style: italic;">No connections yet. Visit locations to meet people.</p>`;
+            return;
+        }
+
+        container.innerHTML = network.map(conn => `
+            <div style="background: #2a2a2a; border-left: 3px solid var(--accent-green); padding: 10px; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                <div style="font-weight: bold; font-size: 1.05em; color: var(--text-main);">🤝 ${conn.name}</div>
+                <div style="font-size: 0.75em; color: var(--accent-blue); text-transform: uppercase; margin-top: 3px; letter-spacing: 0.5px;">${conn.category}</div>
+                <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 6px; line-height: 1.3;">Maintained for Semester Bonuses</div>
+            </div>
+        `).join('');
+    },
+
+    updateNarrativeSidePanel: function(phase, vibe) {
+        document.getElementById('current-phase').textContent = phase;
+        document.getElementById('phase-vibe').textContent = vibe;
+    },
+
+    updateBoard: function(html) {
+        document.getElementById('board-panel').innerHTML = html;
+    },
+
+    renderInterlude: function(interns) {
         const internCards = interns.map(card => {
             const reqEval = Logic.evaluateRequirements(card.Req_Prerequisite);
             const btnState = reqEval.locked ? 'disabled' : '';
@@ -280,7 +305,7 @@
                     <div>
                         <div style="font-weight: bold; font-size: 1.1em; color: var(--accent-blue);">Chill at Home</div>
                         <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 5px;">Take a complete break.</div>
-                        <div style="margin-top: 10px; font-size: 0.9em; color: var(--accent-green);">+50 Health, -50 Stress</div>
+                        <div style="margin-top: 10px; font-size: 0.9em; color: var(--accent-green);">+5 Health, -5 Stress</div>
                     </div>
                     <button class="draft-btn" style="background: var(--accent-blue);" onclick="CampusSimulator.selectInterlude('SKIP')">
                         🏠 Go Home
@@ -289,6 +314,7 @@
             </div>
         `;
     },
+
     renderSummer: function() {
         return `
             <div style="text-align: center; margin-bottom: 20px;">
@@ -297,36 +323,33 @@
             </div>
             <div class="card-grid">
                 
-                <!-- Option 1: Internship -->
                 <div class="opp-card" style="border-color: var(--accent-gold);">
                     <div>
                         <div style="font-weight: bold; font-size: 1.1em; color: var(--accent-gold);">🏢 Complete Internship</div>
                         <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 5px;">Execute your corporate or research role.</div>
-                        <div style="margin-top: 10px; font-size: 0.9em; color: var(--accent-green);">+1 Work Exp, +₹2000, +30 Stress</div>
+                        <div style="margin-top: 10px; font-size: 0.9em; color: var(--accent-green);">+1 Work Exp, +₹2000, +3 Stress</div>
                     </div>
                     <button class="draft-btn" style="background: var(--accent-gold); color: black;" onclick="CampusSimulator.selectSummer('INTERN')">
                         💼 Go to Work
                     </button>
                 </div>
 
-                <!-- Option 2: Campus Project -->
                 <div class="opp-card" style="border-color: var(--accent-blue);">
                     <div>
                         <div style="font-weight: bold; font-size: 1.1em; color: var(--accent-blue);">🔬 Summer Project</div>
                         <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 5px;">Stay in empty hostels and work with a Prof.</div>
-                        <div style="margin-top: 10px; font-size: 0.9em; color: var(--accent-green);">+2 Research, +15 Study, -20 Social</div>
+                        <div style="margin-top: 10px; font-size: 0.9em; color: var(--accent-green);">+2 Research, +15 Study, -2 Social</div>
                     </div>
                     <button class="draft-btn" style="background: var(--accent-blue);" onclick="CampusSimulator.selectSummer('PROJECT')">
                         📚 Stay on Campus
                     </button>
                 </div>
 
-                <!-- Option 3: Chill at Home -->
                 <div class="opp-card" style="border-color: var(--accent-green);">
                     <div>
                         <div style="font-weight: bold; font-size: 1.1em; color: var(--accent-green);">🏠 Chill at Home</div>
                         <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 5px;">Mom's food and absolute rest.</div>
-                        <div style="margin-top: 10px; font-size: 0.9em; color: var(--accent-green);">+100 Health, -100 Stress</div>
+                        <div style="margin-top: 10px; font-size: 0.9em; color: var(--accent-green);">+10 Health, -10 Stress</div>
                     </div>
                     <button class="draft-btn" style="background: var(--accent-green);" onclick="CampusSimulator.selectSummer('HOME')">
                         ✈️ Pack Bags
@@ -336,7 +359,7 @@
         `;
     },
 
-                renderPlacementResume: function(resume) {
+    renderPlacementResume: function(resume) {
         return `
             <div style="width: 100%; max-width: 600px; margin: 0 auto; text-align: center;">
                 <h2 style="color: var(--accent-gold); font-size: 1.8em; margin-bottom: 5px;">Your Resume Before Placement Season</h2>
@@ -446,106 +469,102 @@
         }
     },
 
-                renderNarrative: function(phase, psychology, poetic) {
-                    return `<div class="game-card">
-                        <h3>${phase}</h3>
-                        <p style="margin-top: 10px; line-height: 1.6;">${psychology}</p>
-                        <p style="margin-top: 10px; font-style: italic; color: var(--text-muted);">"${poetic}"</p>
-                    </div>`;
-                },
+    renderNarrative: function(phase, psychology, poetic) {
+        return `<div class="game-card">
+            <h3>${phase}</h3>
+            <p style="margin-top: 10px; line-height: 1.6;">${psychology}</p>
+            <p style="margin-top: 10px; font-style: italic; color: var(--text-muted);">"${poetic}"</p>
+        </div>`;
+    },
 
-                renderFriction: function(eventCard) {
-                    if (!eventCard) return '<div class="game-card"><p>No friction events for this semester.</p></div>';
-                    
-                    // Helper to build beautiful, dynamic stat pills
-                    const buildPill = (val, stat, isBadIfPositive) => {
-                        if (val === 0) return '';
-                        const isPositive = val > 0;
-                        const sign = isPositive ? '+' : '';
-                        
-                        // Stress is bad if positive. Everything else is good if positive.
-                        let isGood = isBadIfPositive ? !isPositive : isPositive;
-                        
-                        const colorStr = isGood ? 'var(--accent-green)' : 'var(--accent-red)';
-                        const bgStr = isGood ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)';
-                        
-                        return `<span class="stat-pill" style="background: ${bgStr}; color: ${colorStr}; border: 1px solid ${colorStr};">${sign}${val} ${stat}</span>`;
-                    };
+    renderFriction: function(eventCard) {
+        if (!eventCard) return '<div class="game-card"><p>No friction events for this semester.</p></div>';
+        
+        const buildPill = (val, stat, isBadIfPositive) => {
+            if (val === 0) return '';
+            const isPositive = val > 0;
+            const sign = isPositive ? '+' : '';
+            
+            let isGood = isBadIfPositive ? !isPositive : isPositive;
+            
+            const colorStr = isGood ? 'var(--accent-green)' : 'var(--accent-red)';
+            const bgStr = isGood ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)';
+            
+            return `<span class="stat-pill" style="background: ${bgStr}; color: ${colorStr}; border: 1px solid ${colorStr};">${sign}${val} ${stat}</span>`;
+        };
 
-                    const t = Logic.getSafeInt(eventCard.Cost_Time);
-                    const h = Logic.getSafeInt(eventCard.Cost_Health);
-                    const s = Logic.getSafeInt(eventCard.Cost_Study);
-                    const soc = Logic.getSafeInt(eventCard.Cost_Social);
-                    const m = Logic.getSafeInt(eventCard.Cost_Money);
-                    const str = Logic.getSafeInt(eventCard.Cost_Stress);
+        const t = Logic.getSafeInt(eventCard.Cost_Time);
+        const h = Logic.getSafeInt(eventCard.Cost_Health);
+        const s = Logic.getSafeInt(eventCard.Cost_Study);
+        const soc = Logic.getSafeInt(eventCard.Cost_Social);
+        const m = Logic.getSafeInt(eventCard.Cost_Money);
+        const str = Logic.getSafeInt(eventCard.Cost_Stress);
 
-                    return `<div class="game-card">
-                        <div class="card-header">
-                            <span>${eventCard.Name || eventCard.ID}</span>
-                        </div>
-                        <p class="card-flavor" style="margin-top: 8px;">${eventCard.Flavor_Text || eventCard.Description || 'A random event affects your semester.'}</p>
-                        <div class="pill-container">
-                            ${buildPill(t, 'Time', false)}
-                            ${buildPill(h, 'Health', false)}
-                            ${buildPill(s, 'Study', false)}
-                            ${buildPill(soc, 'Social', false)}
-                            ${buildPill(m, 'Money', false)}
-                            ${buildPill(str, 'Stress', true)}
-                        </div>
-                    </div>`;
-                },
+        return `<div class="game-card">
+            <div class="card-header">
+                <span>${eventCard.Name || eventCard.ID}</span>
+            </div>
+            <p class="card-flavor" style="margin-top: 8px;">${eventCard.Flavor_Text || eventCard.Description || 'A random event affects your semester.'}</p>
+            <div class="pill-container">
+                ${buildPill(t, 'Time', false)}
+                ${buildPill(h, 'Health', false)}
+                ${buildPill(s, 'Study', false)}
+                ${buildPill(soc, 'Social', false)}
+                ${buildPill(m, 'Money', false)}
+                ${buildPill(str, 'Stress', true)}
+            </div>
+        </div>`;
+    },
 
-                renderOpportunity: function(tabData, activeTab) {
-                    const tabNames = { projects: 'Projects', interns: 'Internships', pors: 'Positions' };
-                    return `
-                        <h2>Opportunities</h2>
-                        <div class="tabs">
-                            <button class="tab-btn ${activeTab === 'projects' ? 'active' : ''}" onclick="CampusSimulator.switchTab('projects')">📋 Projects</button>
-                            <button class="tab-btn ${activeTab === 'interns' ? 'active' : ''}" onclick="CampusSimulator.switchTab('interns')">🏢 Internships</button>
-                            <button class="tab-btn ${activeTab === 'pors' ? 'active' : ''}" onclick="CampusSimulator.switchTab('pors')">🎓 Positions</button>
-                        </div>
-                        <div class="card-grid">
-                            ${tabData.map(item => item.html).join('')}
-                        </div>
-                    `;
-                },
+    renderOpportunity: function(tabData, activeTab) {
+        const tabNames = { projects: 'Projects', interns: 'Internships', pors: 'Positions' };
+        return `
+            <h2>Opportunities</h2>
+            <div class="tabs">
+                <button class="tab-btn ${activeTab === 'projects' ? 'active' : ''}" onclick="CampusSimulator.switchTab('projects')">📋 Projects</button>
+                <button class="tab-btn ${activeTab === 'interns' ? 'active' : ''}" onclick="CampusSimulator.switchTab('interns')">🏢 Internships</button>
+                <button class="tab-btn ${activeTab === 'pors' ? 'active' : ''}" onclick="CampusSimulator.switchTab('pors')">🎓 Positions</button>
+            </div>
+            <div class="card-grid">
+                ${tabData.map(item => item.html).join('')}
+            </div>
+        `;
+    },
 
-                renderAction: function(locations, blocksRemaining) {
-                    return `<div style="width: 100%; max-width: 600px;">
-                        <h2>Locations</h2>
-                        ${locations.map(loc => {
-                            const cost = Logic.getSafeInt(loc.Cost_Time);
-                            const isAffordable = blocksRemaining >= cost;
-                            return `<div class="game-card ${isAffordable ? 'clickable' : 'disabled'}" onclick="${isAffordable ? `CampusSimulator.takeLocationAction('${loc.ID}')` : ''}" style="cursor: ${isAffordable ? 'pointer' : 'not-allowed'};">
-                                <div class="card-header">
-                                    <span>${loc.Location_Name}</span>
-                                    <span class="card-cost">${cost} blocks</span>
-                                </div>
-                                <p class="card-flavor">${loc.Description || 'A place to spend time.'}</p>
-                            </div>`;
-                        }).join('')}
-                    </div>`;
-                },
+    renderAction: function(locations, blocksRemaining) {
+        return `<div style="width: 100%; max-width: 600px;">
+            <h2>Locations</h2>
+            ${locations.map(loc => {
+                const cost = Logic.getSafeInt(loc.Cost_Time);
+                const isAffordable = blocksRemaining >= cost;
+                return `<div class="game-card ${isAffordable ? 'clickable' : 'disabled'}" onclick="${isAffordable ? `CampusSimulator.takeLocationAction('${loc.ID}')` : ''}" style="cursor: ${isAffordable ? 'pointer' : 'not-allowed'};">
+                    <div class="card-header">
+                        <span>${loc.Location_Name}</span>
+                        <span class="card-cost">${cost} blocks</span>
+                    </div>
+                    <p class="card-flavor">${loc.Description || 'A place to spend time.'}</p>
+                </div>`;
+            }).join('')}
+        </div>`;
+    },
 
-                components: {
-                    oppCard: function(card, isLocked, isAffordable, reqHTML) {
-                        const cost = Logic.getSafeInt(card.Cost_Time);
-                        const costHealth = Logic.getSafeInt(card.Cost_Health);
-                        const rewardHealth = Logic.getSafeInt(card.Reward_Health);
+    components: {
+        oppCard: function(card, isLocked, isAffordable, reqHTML) {
+            const cost = Logic.getSafeInt(card.Cost_Time);
 
-                        return `
-                            <div class="opp-card ${isLocked ? 'locked' : ''}">
-                                <div>
-                                    <div style="font-weight: bold; font-size: 1.05em;">${card['Card Name'] || card.ID}</div>
-                                    <div style="font-size: 0.9em; color: var(--text-muted); margin-top: 5px;">Cost: <span style="color: var(--accent-blue);">${cost} blocks</span></div>
-                                    <div style="font-size: 0.85em; margin-top: 8px; line-height: 1.4;">${card.Description || 'An opportunity awaits.'}</div>
-                                    ${reqHTML ? `<div>${reqHTML}</div>` : ''}
-                                </div>
-                                <button class="draft-btn" onclick="CampusSimulator.draftCard('${card.ID}')" ${isLocked || !isAffordable ? 'disabled' : ''}>
-                                    ${isLocked ? '🔒 Locked' : !isAffordable ? '❌ Not Enough Time' : '✅ Draft'}
-                                </button>
-                            </div>
-                        `;
-                    }
-                }
-            };
+            return `
+                <div class="opp-card ${isLocked ? 'locked' : ''}">
+                    <div>
+                        <div style="font-weight: bold; font-size: 1.05em;">${card['Card Name'] || card.ID}</div>
+                        <div style="font-size: 0.9em; color: var(--text-muted); margin-top: 5px;">Cost: <span style="color: var(--accent-blue);">${cost} blocks</span></div>
+                        <div style="font-size: 0.85em; margin-top: 8px; line-height: 1.4;">${card.Description || 'An opportunity awaits.'}</div>
+                        ${reqHTML ? `<div>${reqHTML}</div>` : ''}
+                    </div>
+                    <button class="draft-btn" onclick="CampusSimulator.draftCard('${card.ID}')" ${isLocked || !isAffordable ? 'disabled' : ''}>
+                        ${isLocked ? '🔒 Locked' : !isAffordable ? '❌ Not Enough Time' : '✅ Draft'}
+                    </button>
+                </div>
+            `;
+        }
+    }
+};

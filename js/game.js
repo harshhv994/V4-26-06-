@@ -18,8 +18,9 @@
                 selectInterlude: function(cardId) { Controller.handleInterludeSelection(cardId); },
                 selectSummer: function(choice) { Controller.handleSummerSelection(choice); },
                 closeTutorial: function() { Controller.closeTutorial(); },
-                closeReportCard: function() { Controller.closeReportCard(); }
-                 // <--- ADD THIS
+                closeReportCard: function() { Controller.closeReportCard(); },
+                confirmMaintenance: function(ids, cost) { Controller.handleSocialMaintenanceConfirm(ids, cost); }
+                
             };
 
 

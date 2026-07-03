@@ -19,12 +19,14 @@
                 },
 
                 clampStats: function() {
-                    state.stats.Health = Math.max(0, Math.min(state.stats.Health, 200));
-                    state.stats.Stress = Math.max(0, Math.min(state.stats.Stress, 200));
-                    state.stats.Social = Math.max(0, Math.min(state.stats.Social, 200));
-                    state.stats.Money = Math.max(0, state.stats.Money);
+                    // Capped at 10 max
+                    state.stats.Health = Math.max(0, Math.min(state.stats.Health, 10));
+                    state.stats.Stress = Math.max(0, Math.min(state.stats.Stress, 10));
+                    state.stats.Social = Math.max(0, Math.min(state.stats.Social, 10));
+                    state.stats.Money = Math.max(0, Math.min(state.stats.Money, 10)); 
+                    
+                    // Study is uncapped during the semester
                     state.stats.Study = Math.max(0, state.stats.Study);
-
                 },
 
                 deductCosts: function(timeCost) {
@@ -254,14 +256,54 @@
                         frequency: card.Frequency,
                         passiveDesc: card.Passive_Effect,
                         semesterAcquired: state.semester,
-                        maintenanceCost: parseInt(card.Maintenance_Cost) || 1 // NEW: Store cost from CSV
-                    };
+                        maintenanceCost: parseInt(card.Maintenance_Cost) || parseInt(card.Cost_Time) || 1                    };
+                    
+                    
                     state.network.push(newConnection);
-
-                    // NEW: Immediately make them active for the current semester
-                    state.activeNetwork.push(newConnection.id);
+                    state.activeNetwork.push(newConnection.id); 
                     return newConnection;
                 }, 
+                // --- NEW: SEMESTER BONUS MODEL ---
+                applyMaintenanceRewards: function(selectedIds) {
+                    let summary = []; // Tracks what was gained for the UI
+                    
+                    selectedIds.forEach(id => {
+                        const card = db.social.find(s => s.ID === id);
+                        if (card) {
+                            let friendSummary = { name: card['Card Name'], rewards: [] };
+
+                            // Parse Rewards directly from CSV
+                            const rHealth = parseInt(card.Reward_Health) || 0;
+                            const rStudy = parseInt(card.Reward_Study) || 0;
+                            const rSocial = parseInt(card.Reward_Social) || 0;
+                            const rMoney = parseInt(card.Reward_Money) || 0;
+                            // Remember: Reward_Stress means relief (-), so we subtract it
+                            const rStress = parseInt(card.Reward_Stress) || 0; 
+
+                            const rAlgo = parseInt(card.Reward_Algo) || 0;
+                            const rPOR = parseInt(card.Reward_POR) || 0;
+                            const rRes = parseInt(card.Reward_Res) || 0;
+                            const rProd = parseInt(card.Reward_Prod) || 0;
+
+                            // Apply stats and build summary strings
+                            if (rHealth > 0) { state.stats.Health += rHealth; friendSummary.rewards.push(`❤️ +${rHealth}`); }
+                            if (rStudy > 0) { state.stats.Study += rStudy; friendSummary.rewards.push(`📚 +${rStudy}`); }
+                            if (rSocial > 0) { state.stats.Social += rSocial; friendSummary.rewards.push(`🤝 +${rSocial}`); }
+                            if (rMoney > 0) { state.stats.Money += rMoney; friendSummary.rewards.push(`💰 +${rMoney}`); }
+                            if (rStress > 0) { state.stats.Stress -= rStress; friendSummary.rewards.push(`😌 -${rStress} Stress`); }
+
+                            if (rAlgo > 0) { state.resume.Algorithm += rAlgo; friendSummary.rewards.push(`💻 +${rAlgo} Algo`); }
+                            if (rPOR > 0) { state.resume.POR += rPOR; friendSummary.rewards.push(`👑 +${rPOR} POR`); }
+                            if (rRes > 0) { state.resume.Research += rRes; friendSummary.rewards.push(`🔬 +${rRes} Res`); }
+                            if (rProd > 0) { state.resume.Product += rProd; friendSummary.rewards.push(`🚀 +${rProd} Prod`); }
+
+                            if (friendSummary.rewards.length > 0) summary.push(friendSummary);
+                        }
+                    });
+
+                    this.clampStats(); // Ensure stats don't break the 1-10 limit
+                    return summary;
+                },
 
                 // ==========================================
                 // --- PHASE 7: REFLECTIVE PLACEMENT ENGINE ---
@@ -362,7 +404,7 @@
                         return getCTC(b.company['Est. CTC']) - getCTC(a.company['Est. CTC']);
                     })[0].company;
                 } 
-
+                
 
 
 

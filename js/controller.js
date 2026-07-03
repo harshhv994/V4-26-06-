@@ -160,8 +160,6 @@ const Controller = {
                                 this.startSummer();
                                 break;
                             }
-                            
-                            // FAILSAFE: If the game tries to play Turn 10 as a normal semester, hijack it.
                             if (state.turn === 10) {
                                 state.phase = PHASES.PLACEMENT;
                                 state.placementStep = 1;
@@ -169,11 +167,22 @@ const Controller = {
                                 break;
                             }
 
-                            // Otherwise, play a normal semester
-                            state.phase = PHASES.FRICTION;
-                            this.startFriction();
+                             // --- REFACTORED: SOCIAL MAINTENANCE INTERCEPTOR ---
+                            // Check if it's an academic sem (Turn > 1) and we haven't done maintenance for this turn yet
+                            if (state.turn > 1 && state.network.length > 0 && state.maintenanceDoneForTurn !== state.turn) {
+                                state.activeNetwork = []; 
+                                
+                                document.body.insertAdjacentHTML('beforeend', UI.renderSocialMaintenanceModal(state.network, state.blocksRemaining));
+                                UI.bindMaintenanceModalListeners(state.blocksRemaining);
+                                return; // Halt loop
+                            }
+                            // --------------------------------------------------
+                            
+                            // If maintenance is done or not needed, start the Narrative
+                            state.phase = PHASES.FRICTION; // NARRATIVE phase immediately queues up FRICTION next
+                            this.startNarrative();
                             break;
-
+                            
                         case PHASES.INTERLUDE:
                             // Default to skip if they bypass the UI buttons
                             this.handleInterludeSelection('SKIP');
@@ -381,21 +390,26 @@ const Controller = {
                     if (totalCost > state.blocksRemaining) return; 
 
                     state.blocksRemaining -= totalCost;
-                    state.activeNetwork = selectedIds;
-                    
-                    // Remove the modal from the DOM
+                    state.activeNetwork = selectedIds; 
+                    state.maintenanceDoneForTurn = state.turn; // Flag to prevent infinite looping
+
                     const modal = document.getElementById('social-maintenance-modal');
                     if (modal) modal.remove();
 
-                    // Resume the normal Phase transition that we halted earlier
-                    if (state.turn === 10) {
-                        state.phase = PHASES.PLACEMENT;
-                        state.placementStep = 1;
-                        state.semester = "Placement"; 
-                        this.startPlacement();
-                    } else {
-                        this.startNarrative();
-                    }
+                    // Apply the Semester Bonuses and get the UI log
+                    const summaryData = Logic.applyMaintenanceRewards(selectedIds);
+
+                    // Show the Summary Popup
+                    document.body.insertAdjacentHTML('beforeend', UI.renderMaintenanceSummaryModal(summaryData, totalCost));
+                },
+
+                handleMaintenanceSummaryConfirm: function() {
+                    const modal = document.getElementById('maintenance-summary-modal');
+                    if (modal) modal.remove();
+
+                    // Resume Game Loop into the Narrative
+                    this.startNarrative();
+                    state.phase = PHASES.FRICTION; // Queue up friction next
                     this.syncHUD();
                 }
 

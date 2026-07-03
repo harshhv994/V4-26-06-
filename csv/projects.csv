@@ -1,10 +1,10 @@
 ID,Type,Card Name,Category,Sem_Start,Sem_End,Cost_Time,Cost_Health,Cost_Study,Cost_Social,Cost_Money,Cost_Stress,Req_Prerequisite,Reward_Algo,Reward_POR,Reward_Res,Reward_Prod
-PROJ_001,PROJECT,intro_to_python,Coding,1,8,3,5,0,5,0,10,None,1,0,0,0
-PROJ_002,PROJECT,cp_ladder,Algorithms,2,8,4,10,0,10,0,15,None,2,0,0,0
-PROJ_003,PROJECT,data_analytics_project,Research,3,8,4,10,0,10,0,15,None,1,0,1,0
-PROJ_004,PROJECT,product_uiux_build,Design,3,8,4,10,0,10,0,15,None,0,0,0,2
-PROJ_005,PROJECT,core_engineering_project,Hardware,4,8,5,15,0,15,0,20,None,0,0,2,0
-PROJ_006,PROJECT,open_source_contrib,Coding,4,8,4,10,0,10,0,15,None,2,0,0,1
-PROJ_007,PROJECT,advanced_ml_research,AI,5,8,6,20,0,20,0,25,None,2,0,3,0
-PROJ_008,PROJECT,startup_mvp_development,Product,6,8,6,20,0,20,0,30,None,1,0,0,3
-PROJ_009,PROJECT,UGP,Academic,7,8,8,25,0,25,0,35,None,0,0,4,0
+PROJ_001,PROJECT,Intro to Python,Coding,1,8,2,0,0,0,0,1,None,1,0,0,0
+PROJ_002,PROJECT,CP Ladder Grind,Algorithms,2,8,3,0,0,0,0,1,None,2,0,0,0
+PROJ_003,PROJECT,Data Analytics Project,Research,3,8,3,0,0,1,0,1,None,1,0,1,0
+PROJ_004,PROJECT,Product UI/UX Build,Design,3,8,3,0,0,1,0,1,None,0,0,0,2
+PROJ_005,PROJECT,Core Engineering Project,Hardware,4,8,4,1,0,0,0,1,None,0,0,2,0
+PROJ_006,PROJECT,Open Source Contribution,Coding,4,8,3,0,0,0,0,1,None,2,0,0,1
+PROJ_007,PROJECT,Advanced ML Research,AI,5,8,4,1,0,1,0,1,None,2,0,3,0
+PROJ_008,PROJECT,Startup MVP Development,Product,6,8,5,1,0,0,0,1,None,1,0,0,3
+PROJ_009,PROJECT,Undergraduate Project (UGP),Academic,7,8,5,1,0,1,0,1,None,0,0,4,0

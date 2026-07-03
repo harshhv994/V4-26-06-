@@ -1,11 +1,11 @@
 ID,Type,Card Name,Category,Sem_Start,Sem_End,Cost_Time,Cost_Health,Cost_Study,Cost_Social,Cost_Money,Cost_Stress,Req_Prerequisite,Reward_Algo,Reward_POR,Reward_Res,Reward_Prod
-INT_001,INTERNSHIP,sde_intern,Internship,summer,summer,0,0,0,0,0,0,Algo>=2,2,0,0,0
-INT_002,INTERNSHIP,ml_ai_intern,Internship,summer,summer,0,0,0,0,0,0,Algo>=2 + Res>=2,2,0,2,0
-INT_003,INTERNSHIP,quant_intern,Internship,summer,summer,0,0,0,0,0,0,Algo>=3 + CPI>=8.5,3,0,1,0
-INT_004,INTERNSHIP,data_analyst_intern,Internship,summer,summer,0,0,0,0,0,0,Algo>=1 + CPI>=7.5,1,0,0,1
-INT_005,INTERNSHIP,research_intern,Internship,summer,summer,0,0,0,0,0,0,CPI>=8.0 + Res>=2,0,0,3,0
-INT_006,INTERNSHIP,apm_intern,Internship,summer,summer,0,0,0,0,0,0,Prod>=3 + POR>=1,0,1,0,3
-INT_007,INTERNSHIP,consulting_intern,Internship,summer,summer,0,0,0,0,0,0,POR>=3 + CPI>=8.0,0,3,1,0
-INT_008,INTERNSHIP,startup_intern,Internship,summer,summer,0,0,0,0,0,0,Prod>=2,1,0,0,2
-INT_009,INTERNSHIP,mgmt_ngo_intern,Internship,summer,summer,0,0,0,0,0,0,POR>=1,0,2,0,0
-INT_010,INTERNSHIP,core_engg_intern,Internship,summer,summer,0,0,0,0,0,0,CPI>=7.0 + Res>=1,0,0,2,0
+INT_001,INTERNSHIP,sde_intern,Internship,summer,summer,0,0,0,0,0,1,Algo>=2,2,0,0,0
+INT_002,INTERNSHIP,ml_ai_intern,Internship,summer,summer,0,0,0,1,0,1,Algo>=2 + Res>=2,1,0,1,0
+INT_003,INTERNSHIP,quant_intern,Internship,summer,summer,0,1,0,0,0,2,Algo>=3 + CPI>=8.5,2,0,0,0
+INT_004,INTERNSHIP,data_analyst_intern,Internship,summer,summer,0,0,0,0,0,1,Algo>=1 + CPI>=7.5,1,0,0,1
+INT_005,INTERNSHIP,research_intern,Internship,summer,summer,0,0,0,1,0,1,CPI>=8.0 + Res>=2,0,0,2,0
+INT_006,INTERNSHIP,apm_intern,Internship,summer,summer,0,0,0,0,0,2,Prod>=3 + POR>=1,0,1,0,2
+INT_007,INTERNSHIP,consulting_intern,Internship,summer,summer,0,1,0,0,0,2,POR>=2 + CPI>=8.0,0,2,0,1
+INT_008,INTERNSHIP,core_engineering_intern,Internship,summer,summer,0,0,0,0,0,1,Res>=1 + CPI>=7.5,1,0,1,0
+INT_009,INTERNSHIP,startup_founder_intern,Internship,summer,summer,0,1,0,0,1,2,Prod>=2,0,1,0,2
+INT_010,INTERNSHIP,public_policy_intern,Internship,summer,summer,0,0,0,0,1,0,POR>=1 + Res>=1,0,1,1,0

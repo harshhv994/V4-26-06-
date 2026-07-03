@@ -59,7 +59,7 @@ const PHASES = {
 // --- 2. GAME STATE ---
 // --- 2. GAME STATE ---
 const state = {
-    stats: { Health: 100, Stress: 0, Social: 50, Money: 1000, Study: 0, CPI: 0.00, lockedCPI: null },
+    stats: { Health: 10, Stress: 0, Social: 0, Money:5, Study: 0, CPI: 0.00, lockedCPI: null },
     resume: { Projects: 0, Internships: 0, Positions: 0, Research: 0, Product: 0, Algo: 0 },
     turn: 1,
     semester: 1,
