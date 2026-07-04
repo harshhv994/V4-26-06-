@@ -71,6 +71,7 @@ const state = {
     
     // --- ACADEMIC TRACKERS ---
     spiHistory: [], // <--- STORES PERMANENT SEMESTER SPIs
+    locationVisits: {},
     
     // --- PASSIVE ENGINE TRACKERS ---
     network: [],

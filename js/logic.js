@@ -280,22 +280,33 @@ const Logic = {
     }, // <--- COMMA ADDED HERE
 
     // --- PHASE 4: ORGANIC SOCIAL ENCOUNTERS ---
-    checkSocialEncounter: function () {
-        // Use config variable (Defaults to 0.25 in state.js)
-        if (Math.random() > GAME_CONFIG.SOCIAL_ENCOUNTER_CHANCE) return null;
+    checkSocialEncounter: function (locationCard) {
+        if (!locationCard) return null;
+        
+        const locName = locationCard.Location_Name;
+        
+        // 1. Log the visit to this specific location
+        if (!state.locationVisits) state.locationVisits = {};
+        state.locationVisits[locName] = (state.locationVisits[locName] || 0) + 1;
+        
+        const visits = state.locationVisits[locName];
 
+        // 2. Scan social.csv to see if this visit count unlocks anyone
         const eligible = db.social.filter(card => {
             const start = parseInt(card.Sem_Start) || 1;
             const end = parseInt(card.Sem_End) || 8;
             const inSem = state.semester >= start && state.semester <= end;
-
-            // Prevent meeting the same person twice
             const alreadyOwned = state.network.some(n => n.id === card.ID);
-            return inSem && !alreadyOwned;
+            
+            // Check if this location triggers the friend, and if the visit count matches exactly
+            const matchesLocation = card.Location_Trigger === locName;
+            const meetsVisits = visits === parseInt(card.Visits_Needed);
+
+            return inSem && !alreadyOwned && matchesLocation && meetsVisits;
         });
 
         if (eligible.length === 0) return null;
-        return eligible[Math.floor(Math.random() * eligible.length)];
+        return eligible[0]; // Return the unlocked friend
     },
 
     acquireSocialConnection: function (card) {

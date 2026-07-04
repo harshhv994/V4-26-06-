@@ -280,40 +280,38 @@ const Controller = {
         this.syncHUD();
     },
 
-    handleLocationClick: function (locId) {
-        const loc = db.locations.find(l => l.ID === locId);
-        const validation = Logic.validateAction(loc);
+    handleLocationClick: function (locationId) {
+        const card = db.locations.find(l => l.ID === locationId) || db.loc.find(l => l.ID === locationId);
+        if (!card) return;
+
+        const validation = Logic.validateAction(card);
         if (!validation.allowed) {
-            alert(validation.reason);
+            alert(`Cannot visit ${card.Location_Name}: ${validation.reason}`);
             return;
         }
 
-        const result = Logic.processCardEffect(loc, 'location');
+        // Process the location effects
+        const result = Logic.processCardEffect(card, 'location');
         Logic.addLog(result);
 
-        // --- CHECK FOR SOCIAL ENCOUNTER ---
-        const encounter = Logic.checkSocialEncounter();
-        if (encounter) {
-            const conn = Logic.acquireSocialConnection(encounter);
-
-            // Rich Narrative Log
+        // NEW: Check for deterministic Social Unlocks based on this location
+        const socialUnlock = Logic.checkSocialEncounter(card);
+        if (socialUnlock) {
+            const newFriend = Logic.acquireSocialConnection(socialUnlock);
             Logic.addLog({
-                type: 'opportunity', // Gold color
+                type: 'opportunity',
                 icon: '🤝',
-                title: `${conn.name} joined your network`,
-                desc: `📍 While spending time at ${loc.Location_Name}, you bumped into someone new.<br><span style="color: var(--text-muted); font-size: 0.9em; font-style: italic;">Passive: ${conn.passiveDesc}</span>`,
-                effects: { Social: 1 },
+                title: `New Connection Unlocked: ${newFriend.name}`,
+                effects: { Social: 1 }, 
                 semester: state.semester,
                 turn: state.turn
             });
-
-            state.stats.Social += 1;
-            Logic.clampStats();
-            // Logic.updateCPI() removed (shifted to end of semester)
+            // Force the UI to refresh the network panel immediately
+            UI.updateNetworkPanel(state.network);
         }
 
-        this.startAction();
         this.syncHUD();
+        this.advanceTurn();
     },
 
     handleTabSwitch: function (tabName) {
