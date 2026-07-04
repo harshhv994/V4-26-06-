@@ -1,28 +1,38 @@
 // --- 3. UI LAYER (Rendering) ---
 const UI = {
-    updateHUD: function (stats, resume, turn, semester, blocks) {
-        // Update Survival (Left Side)
+    updateHUD: function(stats, resume, turn, semester, blocks) {
+        // Update Survival (Left Panel Vertical)
         document.getElementById('survival-stats').innerHTML = `
-            <div class="stat-box">❤️ Health: ${Math.max(0, stats.Health)}</div>
-            <div class="stat-box">👥 Social: ${stats.Social}</div>
-            <div class="stat-box">🤯 Stress: ${stats.Stress}</div>
-            <div class="stat-box" style="border-color: var(--accent-blue); color: var(--accent-blue);">📚 Study: ${stats.Study}</div>
-            <div class="stat-box">💵 Money: ₹${stats.Money}</div>
+            <div class="stat-box"><span>❤️ Health</span> <span>${Math.max(0, stats.Health)} / 10</span></div>
+            <div class="stat-box"><span>👥 Social</span> <span>${stats.Social} / 10</span></div>
+            <div class="stat-box" style="${stats.Stress >= 8 ? 'color: var(--accent-red); border-color: var(--accent-red);' : ''}">
+                <span>🤯 Stress</span> <span>${stats.Stress} / 10</span>
+            </div>
+            <div class="stat-box" style="border-color: var(--accent-blue); color: var(--accent-blue);">
+                <span>📚 Study</span> <span>${stats.Study}</span>
+            </div>
+            <div class="stat-box"><span>💵 Money</span> <span>₹${stats.Money}</span></div>
         `;
-
-        // Update Resume (Right Side) - FIXED to show actual stats instead of generic counts
+        
+        // Update Resume (Left Panel Vertical)
         document.getElementById('resume-stats').innerHTML = `
-            <div class="stat-box" style="border-color: var(--accent-gold); color: var(--accent-gold);">📈 CPI: ${(stats.CPI || 0).toFixed(2)}</div>
-            <div class="stat-box">👑 POR: ${resume.Positions}</div>
-            <div class="stat-box">💻 Algo: ${resume.Algo}</div>
-            <div class="stat-box">🔬 Research: ${resume.Research}</div>
-            <div class="stat-box">🚀 Product: ${resume.Product}</div>
+            <div class="stat-box" style="border-color: var(--accent-gold); color: var(--accent-gold);">
+                <span>📈 CPI</span> <span>${(stats.CPI || 0).toFixed(2)}</span>
+            </div>
+            <div class="stat-box" style="border-color: var(--accent-purple); color: var(--accent-purple);">
+                <span>💼 Work</span> <span>${resume.Internships || 0}</span>
+            </div>
+            <div class="stat-box"><span>📋 Proj</span> <span>${resume.Projects || 0}</span></div>
+            <div class="stat-box"><span>👑 POR</span> <span>${resume.Positions || 0}</span></div>
+            <div class="stat-box"><span>💻 Algo</span> <span>${resume.Algo || 0}</span></div>
+            <div class="stat-box"><span>🔬 Res</span> <span>${resume.Research || 0}</span></div>
+            <div class="stat-box"><span>🚀 Prod</span> <span>${resume.Product || 0}</span></div>
         `;
-
-        // Update Time Panel
+        
+        // Update Time Panel (Footer)
         let blockText = '';
         const narrativeTurns = [5, 8, 10]; // Interlude, Summer, Placement
-
+        
         if (narrativeTurns.includes(turn)) {
             blockText = `Blocks: 0`;
         } else {

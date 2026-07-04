@@ -15,17 +15,74 @@
 
 body { background-color: var(--bg-dark); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; }
 
-/* Top Bar: Core Stats & Resume */
-header { background-color: var(--panel-bg); padding: 15px 20px; display: flex; justify-content: space-between; border-bottom: 1px solid #333; }
-.stat-group { display: flex; gap: 15px; }
-.stat-box { background: #2a2a2a; padding: 5px 15px; border-radius: var(--border-radius); font-weight: bold; }
+/* --- TOP BAR REMOVED --- */
+header { display: none; } 
 
-/* Main Layout: 3 Columns */
-main { display: flex; flex: 1; overflow: hidden; }
+/* --- MAIN 3-PANEL LAYOUT (CSS GRID) --- */
+.three-panel-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr 300px; /* Left: 280px, Center: Flexible, Right: 300px */
+    flex: 1;
+    overflow: hidden;
+}
 
-#narrative-panel { width: 25%; padding: 20px; background: var(--panel-bg); border-right: 1px solid #333; overflow-y: auto; }
-#board-panel { width: 50%; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
-#social-panel { width: 25%; padding: 20px; background: var(--panel-bg); border-left: 1px solid #333; overflow-y: auto; }
+#left-panel {
+    background: var(--panel-bg);
+    border-right: 1px solid #333;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+#center-panel {
+    padding: 25px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+#board-panel { width: 100%; max-width: 800px; } /* Keeps cards highly readable */
+
+#right-panel {
+    background: var(--panel-bg);
+    border-left: 1px solid #333;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Sidebar Utilities */
+.panel-section { margin-bottom: 5px; }
+.panel-heading {
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 5px;
+}
+.panel-divider {
+    margin: 20px 0;
+    border: 0;
+    border-top: 1px solid #333;
+}
+
+/* Vertical Stats Styling (For the Character Sheet) */
+.vertical-stats { display: flex; flex-direction: column; gap: 8px; }
+.vertical-stats .stat-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #2a2a2a;
+    padding: 8px 12px;
+    border-radius: var(--border-radius);
+    font-weight: bold;
+    font-size: 0.9em;
+    border: 1px solid transparent;
+}
 
 /* Footer: Controls & Time Blocks */
 footer { background-color: var(--panel-bg); padding: 15px 20px; display: flex; justify-content: space-between; border-top: 1px solid #333; align-items: center; }
