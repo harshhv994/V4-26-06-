@@ -1,6 +1,6 @@
 // --- 3. UI LAYER (Rendering) ---
 const UI = {
-    updateHUD: function(stats, resume, turn, semester, blocks) {
+    updateHUD: function (stats, resume, turn, semester, blocks) {
         // Update Survival (Left Side)
         document.getElementById('survival-stats').innerHTML = `
             <div class="stat-box">❤️ Health: ${Math.max(0, stats.Health)}</div>
@@ -9,20 +9,20 @@ const UI = {
             <div class="stat-box" style="border-color: var(--accent-blue); color: var(--accent-blue);">📚 Study: ${stats.Study}</div>
             <div class="stat-box">💵 Money: ₹${stats.Money}</div>
         `;
-        
-        // Update Resume (Right Side)
+
+        // Update Resume (Right Side) - FIXED to show actual stats instead of generic counts
         document.getElementById('resume-stats').innerHTML = `
             <div class="stat-box" style="border-color: var(--accent-gold); color: var(--accent-gold);">📈 CPI: ${(stats.CPI || 0).toFixed(2)}</div>
-            <div class="stat-box">🏅 POR: ${resume.Positions}</div>
+            <div class="stat-box">👑 POR: ${resume.Positions}</div>
+            <div class="stat-box">💻 Algo: ${resume.Algo}</div>
             <div class="stat-box">🔬 Research: ${resume.Research}</div>
-            <div class="stat-box">🎨 Product: ${resume.Product}</div>
-            <div class="stat-box">💼 Work: ${resume.Internships}</div>
+            <div class="stat-box">🚀 Product: ${resume.Product}</div>
         `;
-        
+
         // Update Time Panel
         let blockText = '';
         const narrativeTurns = [5, 8, 10]; // Interlude, Summer, Placement
-        
+
         if (narrativeTurns.includes(turn)) {
             blockText = `Blocks: 0`;
         } else {
@@ -32,7 +32,7 @@ const UI = {
         document.getElementById('time-tracker').innerHTML = `Sem ${semester} | Turn ${turn} | ${blockText}`;
     },
 
-    renderTutorialModal: function() {
+    renderTutorialModal: function () {
         return `
             <div id="time-tutorial-modal" class="modal-overlay">
                 <div class="modal-content">
@@ -50,7 +50,7 @@ const UI = {
         `;
     },
 
-    renderReportCardModal: function(semester, studyPoints, spi, cpi) {
+    renderReportCardModal: function (semester, studyPoints, spi, cpi) {
         return `
             <div id="report-card-modal" class="modal-overlay" style="animation: fadeIn 0.3s ease-out;">
                 <div class="modal-content" style="max-width: 450px; animation: popIn 0.4s ease-out; border: 1px solid var(--accent-gold);">
@@ -86,10 +86,9 @@ const UI = {
         `;
     },
 
-    // --- REFACTORED: SOCIAL MAINTENANCE UI ---
-    renderSocialMaintenanceModal: function(networkList, availableBlocks) {
+    renderSocialMaintenanceModal: function (networkList, availableBlocks) {
         const friendsHTML = networkList.map(conn => {
-            const cost = 1; // STRICTLY HARDCODED TO 1 TIME BLOCK
+            const cost = 1;
 
             return `
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">
@@ -126,19 +125,19 @@ const UI = {
         `;
     },
 
-    bindMaintenanceModalListeners: function(availableBlocks) {
+    bindMaintenanceModalListeners: function (availableBlocks) {
         const checkboxes = document.querySelectorAll('.social-checkbox');
         const costDisplay = document.getElementById('maintenance-cost-display');
         const confirmBtn = document.getElementById('maintenance-confirm-btn');
 
         const updateTotal = () => {
             let total = 0;
-            checkboxes.forEach(cb => { 
-                if (cb.checked) total += parseInt(cb.dataset.cost); 
+            checkboxes.forEach(cb => {
+                if (cb.checked) total += parseInt(cb.dataset.cost);
             });
-            
+
             costDisplay.innerText = total;
-            
+
             if (total > availableBlocks) {
                 costDisplay.style.color = 'var(--accent-red)';
                 confirmBtn.disabled = true;
@@ -153,10 +152,10 @@ const UI = {
         };
 
         checkboxes.forEach(cb => cb.addEventListener('change', updateTotal));
-        
+
         confirmBtn.addEventListener('click', (e) => {
-            e.preventDefault(); 
-            
+            e.preventDefault();
+
             let selected = [];
             let totalCost = 0;
             checkboxes.forEach(cb => {
@@ -165,20 +164,16 @@ const UI = {
                     totalCost += parseInt(cb.dataset.cost);
                 }
             });
-            
+
             if (typeof Controller !== 'undefined' && typeof Controller.handleSocialMaintenanceConfirm === 'function') {
                 Controller.handleSocialMaintenanceConfirm(selected, totalCost);
-            } else {
-                alert("System Error: Cannot find handleSocialMaintenanceConfirm. Make sure it was placed inside the Controller object in controller.js!");
-                console.error("Handler missing in Controller.");
             }
         });
 
         updateTotal();
     },
 
-    // --- NEW: SEMESTER BONUS SUMMARY MODAL ---
-    renderMaintenanceSummaryModal: function(summaryData, totalCost) {
+    renderMaintenanceSummaryModal: function (summaryData, totalCost) {
         let summaryHTML = summaryData.map(friend => `
             <div style="margin-bottom: 12px; border-bottom: 1px dashed #444; padding-bottom: 8px;">
                 <strong style="color: var(--text-main);">${friend.name}</strong><br>
@@ -211,7 +206,7 @@ const UI = {
         `;
     },
 
-    updateEventLog: function(logs) {
+    updateEventLog: function (logs) {
         const logHTML = logs.map(log => {
             let color = 'var(--text-muted)';
             if (log.type === 'opportunity') color = 'var(--accent-gold)';
@@ -222,7 +217,7 @@ const UI = {
             for (const [stat, value] of Object.entries(log.effects)) {
                 const isPositive = value > 0;
                 const sign = isPositive ? '+' : '';
-                
+
                 let pillColor = 'var(--text-muted)';
                 if (['Health', 'Social', 'Study', 'Money'].includes(stat)) {
                     pillColor = isPositive ? 'var(--accent-green)' : 'var(--accent-red)';
@@ -247,10 +242,10 @@ const UI = {
         document.getElementById('event-log').innerHTML = logHTML;
     },
 
-    updateNetworkPanel: function(network) {
+    updateNetworkPanel: function (network) {
         const container = document.getElementById('active-connections');
-        if (!container) return; 
-        
+        if (!container) return;
+
         if (network.length === 0) {
             container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9em; font-style: italic;">No connections yet. Visit locations to meet people.</p>`;
             return;
@@ -265,27 +260,32 @@ const UI = {
         `).join('');
     },
 
-    updateNarrativeSidePanel: function(phase, vibe) {
+    updateNarrativeSidePanel: function (phase, vibe) {
         document.getElementById('current-phase').textContent = phase;
         document.getElementById('phase-vibe').textContent = vibe;
     },
 
-    updateBoard: function(html) {
+    updateBoard: function (html) {
         document.getElementById('board-panel').innerHTML = html;
     },
 
-    renderInterlude: function(interns) {
+    renderInterlude: function (interns) {
         const internCards = interns.map(card => {
             const reqEval = Logic.evaluateRequirements(card.Req_Prerequisite);
             const btnState = reqEval.locked ? 'disabled' : '';
             const btnText = reqEval.locked ? 'Locked' : 'Select';
-            
+
             return `
                 <div class="opp-card ${reqEval.locked ? 'locked' : ''}">
                     <div>
                         <div style="font-weight: bold; font-size: 1.1em; color: var(--accent-gold);">${card['Card Name'] || card.ID}</div>
                         <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 5px;">Category: ${card.Category || 'Internship'}</div>
                         <div style="margin-top: 10px; border-top: 1px solid #444; padding-top: 10px;">${reqEval.html}</div>
+                        <div style="margin-top: 5px; font-size: 0.85em; color: var(--accent-blue);">
+                           Rewards: ${card.Reward_Algo > 0 ? `💻 +${card.Reward_Algo} Algo ` : ''}
+                           ${card.Reward_Res > 0 ? `🔬 +${card.Reward_Res} Res ` : ''}
+                           ${card.Reward_Prod > 0 ? `🚀 +${card.Reward_Prod} Prod ` : ''}
+                        </div>
                     </div>
                     <button class="draft-btn" ${btnState} onclick="CampusSimulator.selectInterlude('${card.ID}')">
                         ${reqEval.locked ? '🔒' : '✅'} ${btnText}
@@ -315,7 +315,7 @@ const UI = {
         `;
     },
 
-    renderSummer: function() {
+    renderSummer: function () {
         const hasInternship = state.history.some(id => id.startsWith('INT_'));
         const canDoProject = state.stats.Social >= 2;
         return `
@@ -361,7 +361,7 @@ const UI = {
         `;
     },
 
-    renderPlacementResume: function(resume) {
+    renderPlacementResume: function (resume) {
         return `
             <div style="width: 100%; max-width: 600px; margin: 0 auto; text-align: center;">
                 <h2 style="color: var(--accent-gold); font-size: 1.8em; margin-bottom: 5px;">Your Resume Before Placement Season</h2>
@@ -374,8 +374,7 @@ const UI = {
                     </div>
                     <div style="font-size: 1.1em; margin-bottom: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <div><strong>💼 Internships:</strong> ${resume.internships}</div>
-                        <div><strong>📋 Projects:</strong> ${resume.projects}</div>
-                        <div><strong>🎓 PORs:</strong> ${resume.por}</div>
+                        <div><strong>🎓 POR Score:</strong> ${resume.por}</div>
                     </div>
                     <div style="font-size: 1.1em; border-top: 1px solid #333; padding-top: 15px; margin-top: 10px;">
                         <strong>Hidden Competencies</strong>
@@ -390,15 +389,14 @@ const UI = {
         `;
     },
 
-    renderPlacementFit: function(results) {
+    renderPlacementFit: function (results) {
         const top5 = results.slice(0, 5);
         const fitHTML = top5.map(res => {
             const statusColor = res.eligible ? 'var(--accent-green)' : (res.match >= 75 ? 'var(--accent-gold)' : 'var(--accent-red)');
             const icon = res.eligible ? '✓' : '⚠';
             const statusText = res.eligible ? 'Eligible' : (res.match >= 75 ? 'Nearly Eligible' : 'Not Eligible');
             const missingText = res.missing.length > 0 ? `<br><span style="font-size: 0.85em; color: var(--text-muted);">Missing: ${res.missing.join(', ')}</span>` : '';
-            
-            // Generate realistic Example Recruiters based on Role keywords
+
             let recruiters = "Top Industry Leaders";
             const name = res.company['Card Name'].toLowerCase();
             if (name.includes('sde') || name.includes('software')) recruiters = "Microsoft, Google, Atlassian, Rubrik";
@@ -431,7 +429,7 @@ const UI = {
         `;
     },
 
-    renderPlacementOutcome: function(bestCompany) {
+    renderPlacementOutcome: function (bestCompany) {
         if (bestCompany) {
             return `
                 <div style="width: 100%; max-width: 600px; margin: 0 auto; text-align: center;">
@@ -471,7 +469,7 @@ const UI = {
         }
     },
 
-    renderNarrative: function(phase, psychology, poetic) {
+    renderNarrative: function (phase, psychology, poetic) {
         return `<div class="game-card">
             <h3>${phase}</h3>
             <p style="margin-top: 10px; line-height: 1.6;">${psychology}</p>
@@ -479,19 +477,19 @@ const UI = {
         </div>`;
     },
 
-    renderFriction: function(eventCard) {
+    renderFriction: function (eventCard) {
         if (!eventCard) return '<div class="game-card"><p>No friction events for this semester.</p></div>';
-        
+
         const buildPill = (val, stat, isBadIfPositive) => {
             if (val === 0) return '';
             const isPositive = val > 0;
             const sign = isPositive ? '+' : '';
-            
+
             let isGood = isBadIfPositive ? !isPositive : isPositive;
-            
+
             const colorStr = isGood ? 'var(--accent-green)' : 'var(--accent-red)';
             const bgStr = isGood ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)';
-            
+
             return `<span class="stat-pill" style="background: ${bgStr}; color: ${colorStr}; border: 1px solid ${colorStr};">${sign}${val} ${stat}</span>`;
         };
 
@@ -518,8 +516,7 @@ const UI = {
         </div>`;
     },
 
-    renderOpportunity: function(tabData, activeTab) {
-        const tabNames = { projects: 'Projects', interns: 'Internships', pors: 'Positions' };
+    renderOpportunity: function (tabData, activeTab) {
         return `
             <h2>Opportunities</h2>
             <div class="tabs">
@@ -532,26 +529,34 @@ const UI = {
         `;
     },
 
-    renderAction: function(locations, blocksRemaining) {
+    renderAction: function (locations, blocksRemaining) {
         return `<div style="width: 100%; max-width: 600px;">
             <h2>Locations</h2>
             ${locations.map(loc => {
-                const cost = Logic.getSafeInt(loc.Cost_Time);
-                const isAffordable = Logic.validateAction(loc).allowed;
-                return `<div class="game-card ${isAffordable ? 'clickable' : 'disabled'}" onclick="${isAffordable ? `CampusSimulator.takeLocationAction('${loc.ID}')` : ''}" style="cursor: ${isAffordable ? 'pointer' : 'not-allowed'};">
+            const cost = Logic.getSafeInt(loc.Cost_Time);
+            const isAffordable = Logic.validateAction(loc).allowed;
+            return `<div class="game-card ${isAffordable ? 'clickable' : 'disabled'}" onclick="${isAffordable ? `CampusSimulator.takeLocationAction('${loc.ID}')` : ''}" style="cursor: ${isAffordable ? 'pointer' : 'not-allowed'};">
                     <div class="card-header">
                         <span>${loc.Location_Name}</span>
                         <span class="card-cost">${cost} blocks</span>
                     </div>
                     <p class="card-flavor">${loc.Description || 'A place to spend time.'}</p>
                 </div>`;
-            }).join('')}
+        }).join('')}
         </div>`;
     },
 
     components: {
-        oppCard: function(card, isLocked, isAffordable, reqHTML) {
+        oppCard: function (card, isLocked, isAffordable, reqHTML) {
             const cost = Logic.getSafeInt(card.Cost_Time);
+
+            // Add visible stat rewards to the cards so players know what they are buying
+            let rewardTags = [];
+            if (Logic.getSafeInt(card.Reward_Algo) > 0) rewardTags.push(`💻 +${card.Reward_Algo} Algo`);
+            if (Logic.getSafeInt(card.Reward_Res) > 0) rewardTags.push(`🔬 +${card.Reward_Res} Res`);
+            if (Logic.getSafeInt(card.Reward_Prod) > 0) rewardTags.push(`🚀 +${card.Reward_Prod} Prod`);
+            if (Logic.getSafeInt(card.Reward_POR) > 0) rewardTags.push(`👑 +${card.Reward_POR} POR`);
+            const rewardsHtml = rewardTags.length > 0 ? `<div style="margin-top: 8px; font-size: 0.85em; color: var(--accent-green); font-weight: bold;">${rewardTags.join(' | ')}</div>` : '';
 
             return `
                 <div class="opp-card ${isLocked ? 'locked' : ''}">
@@ -559,7 +564,8 @@ const UI = {
                         <div style="font-weight: bold; font-size: 1.05em;">${card['Card Name'] || card.ID}</div>
                         <div style="font-size: 0.9em; color: var(--text-muted); margin-top: 5px;">Cost: <span style="color: var(--accent-blue);">${cost} blocks</span></div>
                         <div style="font-size: 0.85em; margin-top: 8px; line-height: 1.4;">${card.Description || 'An opportunity awaits.'}</div>
-                        ${reqHTML ? `<div>${reqHTML}</div>` : ''}
+                        ${rewardsHtml}
+                        ${reqHTML ? `<div style="margin-top: 8px;">${reqHTML}</div>` : ''}
                     </div>
                     <button class="draft-btn" onclick="CampusSimulator.draftCard('${card.ID}')" ${isLocked || !isAffordable ? 'disabled' : ''}>
                         ${isLocked ? '🔒 Locked' : !isAffordable ? '❌ Cannot Afford' : '✅ Draft'}

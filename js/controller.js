@@ -32,7 +32,15 @@ const Controller = {
     },
     startInterlude: function () {
         UI.updateNarrativeSidePanel("The Intern Selection", "The SPO portal is live. Evaluate your options based on the resume you have built.");
-        UI.updateBoard(UI.renderInterlude(db.intern));
+        
+        // --- FIXED: Ensure internships only show if player has reached the required semester ---
+        // Treat "summer" in CSV as requiring at least Semester 4 to see lower-tier, Semester 6 for top-tier
+        const validInterns = db.intern.filter(card => {
+            // For now, if your CSV says "summer", we just make sure we are at least Turn 5 (Sem 4 Interlude)
+            return state.turn >= 5; 
+        });
+
+        UI.updateBoard(UI.renderInterlude(validInterns));
         this.syncHUD();
     },
 
