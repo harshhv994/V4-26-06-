@@ -517,11 +517,17 @@ const UI = {
     },
 
     renderOpportunity: function (tabData, activeTab) {
+        // Dynamically check if player is in 2nd Year (Sem 3+) to unlock the tab
+        const showInternTab = typeof state !== 'undefined' && state.semester >= 3;
+
         return `
-            <h2>Opportunities</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="margin: 0;">Opportunities</h2>
+            </div>
             <div class="tabs">
                 <button class="tab-btn ${activeTab === 'projects' ? 'active' : ''}" onclick="CampusSimulator.switchTab('projects')">📋 Projects</button>
-                <button class="tab-btn ${activeTab === 'pors' ? 'active' : ''}" onclick="CampusSimulator.switchTab('pors')">🎓 Positions</button>
+                <button class="tab-btn ${activeTab === 'pors' ? 'active' : ''}" onclick="CampusSimulator.switchTab('pors')">👑 PORs</button>
+                ${showInternTab ? `<button class="tab-btn ${activeTab === 'interns' ? 'active' : ''}" onclick="CampusSimulator.switchTab('interns')">💼 Off-Campus</button>` : ''}
             </div>
             <div class="card-grid">
                 ${tabData.map(item => item.html).join('')}

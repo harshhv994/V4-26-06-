@@ -31,14 +31,10 @@ const Controller = {
         }
     },
     startInterlude: function () {
-        UI.updateNarrativeSidePanel("The Intern Selection", "The SPO portal is live. Evaluate your options based on the resume you have built.");
+        UI.updateNarrativeSidePanel("The SPO Portal", "The official placement office portal is live. Major corporate internships are now available.");
         
-        // --- FIXED: Ensure internships only show if player has reached the required semester ---
-        // Treat "summer" in CSV as requiring at least Semester 4 to see lower-tier, Semester 6 for top-tier
-        const validInterns = db.intern.filter(card => {
-            // For now, if your CSV says "summer", we just make sure we are at least Turn 5 (Sem 4 Interlude)
-            return state.turn >= 5; 
-        });
+        // Filter: Only load heavy corporate SPO internships for the Interlude
+        const validInterns = db.intern.filter(card => card.Category === 'SPO');
 
         UI.updateBoard(UI.renderInterlude(validInterns));
         this.syncHUD();
@@ -322,39 +318,77 @@ const Controller = {
 
     handleTabSwitch: function (tabName) {
         try {
-            let data = [];
-            // Match the exact string names from your UI buttons
-            if (tabName === 'projects') data = db.proj || [];
-            if (tabName === 'pors') data = db.por || [];
+            state.activeTab = tabName;
+            let tabData = [];
 
-            // 1. Strictly filter opportunities by semester
-            const validData = data.filter(card => {
-                if (!card || !card.ID) return false;
-
-                const start = parseInt(card.Sem_Start) || 1;
-                const end = parseInt(card.Sem_End) || 8;
-                return state.semester >= start && state.semester <= end;
-            });
-
-            // 2. Generate the HTML objects that your renderOpportunity function expects
-            const tabData = validData.map(card => {
-                const reqEval = Logic.evaluateRequirements(card.Req_Prerequisite);
-                const isDrafted = state.history.includes(card.ID);
-                const isAffordable = Logic.validateAction(card).allowed;
-
-                let cardHtml = '';
-                if (isDrafted) {
-                    cardHtml = `<div class="opp-card locked" style="border-color: #333; opacity: 0.6;">
-                                    <div>
-                                        <div style="font-weight: bold; color: var(--accent-green);">✓ ${card['Card Name'] || card.ID}</div>
-                                        <div style="font-size: 0.85em; margin-top: 5px; color: var(--text-muted);">Already Completed.</div>
-                                    </div>
-                                </div>`;
-                } else {
-                    cardHtml = UI.components.oppCard(card, reqEval.locked, isAffordable, reqEval.html);
-                }
-                return { html: cardHtml };
-            });
+            if (tabName === 'projects') {
+                tabData = (db.proj || []).filter(card => {
+                    const start = parseInt(card.Sem_Start) || 1;
+                    const end = parseInt(card.Sem_End) || 8;
+                    return state.semester >= start && state.semester <= end;
+                }).map(card => {
+                    const reqEval = Logic.evaluateRequirements(card.Req_Prerequisite);
+                    const isDrafted = state.history.includes(card.ID);
+                    const isAffordable = Logic.validateAction(card).allowed;
+                    let cardHtml = '';
+                    if (isDrafted) {
+                        cardHtml = `<div class="opp-card locked" style="border-color: #333; opacity: 0.6;">
+                                        <div>
+                                            <div style="font-weight: bold; color: var(--accent-green);">✓ ${card['Card Name'] || card.ID}</div>
+                                            <div style="font-size: 0.85em; margin-top: 5px; color: var(--text-muted);">Already Completed.</div>
+                                        </div>
+                                    </div>`;
+                    } else {
+                        cardHtml = UI.components.oppCard(card, reqEval.locked, isAffordable, reqEval.html);
+                    }
+                    return { html: cardHtml };
+                });
+            } else if (tabName === 'pors') {
+                tabData = (db.por || []).filter(card => {
+                    const start = parseInt(card.Sem_Start) || 1;
+                    const end = parseInt(card.Sem_End) || 8;
+                    return state.semester >= start && state.semester <= end;
+                }).map(card => {
+                    const reqEval = Logic.evaluateRequirements(card.Req_Prerequisite);
+                    const isDrafted = state.history.includes(card.ID);
+                    const isAffordable = Logic.validateAction(card).allowed;
+                    let cardHtml = '';
+                    if (isDrafted) {
+                         cardHtml = `<div class="opp-card locked" style="border-color: #333; opacity: 0.6;">
+                                        <div>
+                                            <div style="font-weight: bold; color: var(--accent-green);">✓ ${card['Card Name'] || card.ID}</div>
+                                            <div style="font-size: 0.85em; margin-top: 5px; color: var(--text-muted);">Already Completed.</div>
+                                        </div>
+                                    </div>`;
+                    } else {
+                        cardHtml = UI.components.oppCard(card, reqEval.locked, isAffordable, reqEval.html);
+                    }
+                    return { html: cardHtml };
+                });
+            } else if (tabName === 'interns') {
+                // Load Off-Campus internships dynamically
+                tabData = (db.intern || []).filter(card => {
+                    const start = parseInt(card.Sem_Start) || 3;
+                    const end = parseInt(card.Sem_End) || 8;
+                    return card.Category === 'Off-Campus' && state.semester >= start && state.semester <= end;
+                }).map(card => {
+                    const reqEval = Logic.evaluateRequirements(card.Req_Prerequisite);
+                    const isDrafted = state.history.includes(card.ID);
+                    const isAffordable = Logic.validateAction(card).allowed;
+                    let cardHtml = '';
+                    if (isDrafted) {
+                        cardHtml = `<div class="opp-card locked" style="border-color: #333; opacity: 0.6;">
+                                        <div>
+                                            <div style="font-weight: bold; color: var(--accent-green);">✓ ${card['Card Name'] || card.ID}</div>
+                                            <div style="font-size: 0.85em; margin-top: 5px; color: var(--text-muted);">Already Completed.</div>
+                                        </div>
+                                    </div>`;
+                    } else {
+                        cardHtml = UI.components.oppCard(card, reqEval.locked, isAffordable, reqEval.html);
+                    }
+                    return { html: cardHtml };
+                });
+            }
 
             if (tabData.length === 0) {
                 tabData.push({ html: '<p style="color: var(--text-muted); padding: 15px; font-style: italic;">No new opportunities available for your current semester.</p>' });
