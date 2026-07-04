@@ -535,45 +535,81 @@ const UI = {
         `;
     },
 
-    renderAction: function (locations, blocksRemaining) {
+    renderAction: function(locations, blocksRemaining) {
         return `<div style="width: 100%; max-width: 600px;">
-            <h2>Locations</h2>
+            <h2 style="margin-bottom: 15px;">Locations</h2>
             ${locations.map(loc => {
-            const cost = Logic.getSafeInt(loc.Cost_Time);
-            const isAffordable = Logic.validateAction(loc).allowed;
-            return `<div class="game-card ${isAffordable ? 'clickable' : 'disabled'}" onclick="${isAffordable ? `CampusSimulator.takeLocationAction('${loc.ID}')` : ''}" style="cursor: ${isAffordable ? 'pointer' : 'not-allowed'};">
+                const costTime = Logic.getSafeInt(loc.Cost_Time);
+                const isAffordable = Logic.validateAction(loc).allowed;
+                
+                // Dynamically build tags based on CSV data
+                let tags = [];
+                
+                // Negative impacts (Costs)
+                if (Logic.getSafeInt(loc.Cost_Health) > 0) tags.push(`<span style="color: var(--accent-red); margin-right: 8px; font-weight: bold;">💔 -${loc.Cost_Health} Health</span>`);
+                if (Logic.getSafeInt(loc.Cost_Social) > 0) tags.push(`<span style="color: var(--accent-red); margin-right: 8px; font-weight: bold;">📉 -${loc.Cost_Social} Social</span>`);
+                if (Logic.getSafeInt(loc.Cost_Money) > 0) tags.push(`<span style="color: var(--accent-red); margin-right: 8px; font-weight: bold;">💸 -₹${loc.Cost_Money}</span>`);
+                if (Logic.getSafeInt(loc.Cost_Stress) > 0) tags.push(`<span style="color: var(--accent-red); margin-right: 8px; font-weight: bold;">🤯 +${loc.Cost_Stress} Stress</span>`);
+                
+                // Positive impacts (Rewards)
+                if (Logic.getSafeInt(loc.Reward_Study) > 0) tags.push(`<span style="color: var(--accent-blue); margin-right: 8px; font-weight: bold;">📚 +${loc.Reward_Study} Study</span>`);
+                if (Logic.getSafeInt(loc.Reward_Health) > 0) tags.push(`<span style="color: var(--accent-green); margin-right: 8px; font-weight: bold;">❤️ +${loc.Reward_Health} Health</span>`);
+                if (Logic.getSafeInt(loc.Reward_Social) > 0) tags.push(`<span style="color: var(--accent-green); margin-right: 8px; font-weight: bold;">🤝 +${loc.Reward_Social} Social</span>`);
+                if (Logic.getSafeInt(loc.Reward_Stress) > 0) tags.push(`<span style="color: var(--accent-green); margin-right: 8px; font-weight: bold;">😌 -${loc.Reward_Stress} Stress</span>`);
+
+                const tagHtml = tags.length > 0 ? `<div style="margin-top: 8px; font-size: 0.85em; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px;">${tags.join('')}</div>` : '';
+
+                return `<div class="game-card ${isAffordable ? 'clickable' : 'disabled'}" onclick="${isAffordable ? `CampusSimulator.takeLocationAction('${loc.ID}')` : ''}" style="cursor: ${isAffordable ? 'pointer' : 'not-allowed'}; margin-bottom: 12px;">
                     <div class="card-header">
-                        <span>${loc.Location_Name}</span>
-                        <span class="card-cost">${cost} blocks</span>
+                        <span style="font-weight: bold; font-size: 1.1em; color: var(--text-main);">${loc.Location_Name}</span>
+                        <span class="card-cost" style="color: var(--accent-blue);">${costTime} blocks</span>
                     </div>
-                    <p class="card-flavor">${loc.Description || 'A place to spend time.'}</p>
+                    <p class="card-flavor" style="margin-top: 5px; font-size: 0.9em;">${loc.Description || loc.Flavor_Text || 'Spend time here to manage your stats.'}</p>
+                    ${tagHtml}
                 </div>`;
-        }).join('')}
+            }).join('')}
         </div>`;
     },
 
     components: {
-        oppCard: function (card, isLocked, isAffordable, reqHTML) {
-            const cost = Logic.getSafeInt(card.Cost_Time);
+        oppCard: function(card, isLocked, isAffordable, reqHTML) {
+            const costTime = Logic.getSafeInt(card.Cost_Time);
+            
+            // Build Career Tokens (The Resume Stats)
+            let resumeTags = [];
+            if (Logic.getSafeInt(card.Reward_Algo) > 0) resumeTags.push(`💻 +${card.Reward_Algo} Algo`);
+            if (Logic.getSafeInt(card.Reward_Res) > 0) resumeTags.push(`🔬 +${card.Reward_Res} Res`);
+            if (Logic.getSafeInt(card.Reward_Prod) > 0) resumeTags.push(`🚀 +${card.Reward_Prod} Prod`);
+            if (Logic.getSafeInt(card.Reward_POR) > 0) resumeTags.push(`👑 +${card.Reward_POR} POR`);
+            const resumeHtml = resumeTags.length > 0 ? `<div style="margin-top: 8px; font-size: 0.9em; color: var(--accent-gold); font-weight: bold; padding-bottom: 5px; border-bottom: 1px dashed #444;">${resumeTags.join(' | ')}</div>` : '';
 
-            // Add visible stat rewards to the cards so players know what they are buying
-            let rewardTags = [];
-            if (Logic.getSafeInt(card.Reward_Algo) > 0) rewardTags.push(`💻 +${card.Reward_Algo} Algo`);
-            if (Logic.getSafeInt(card.Reward_Res) > 0) rewardTags.push(`🔬 +${card.Reward_Res} Res`);
-            if (Logic.getSafeInt(card.Reward_Prod) > 0) rewardTags.push(`🚀 +${card.Reward_Prod} Prod`);
-            if (Logic.getSafeInt(card.Reward_POR) > 0) rewardTags.push(`👑 +${card.Reward_POR} POR`);
-            const rewardsHtml = rewardTags.length > 0 ? `<div style="margin-top: 8px; font-size: 0.85em; color: var(--accent-green); font-weight: bold;">${rewardTags.join(' | ')}</div>` : '';
+            // Build Biological Impacts (Costs and Rewards from the CSV)
+            let bioTags = [];
+            
+            // Negative impacts (Costs)
+            if (Logic.getSafeInt(card.Cost_Health) > 0) bioTags.push(`<span style="color: var(--accent-red); margin-right: 6px;">💔 -${card.Cost_Health} Health</span>`);
+            if (Logic.getSafeInt(card.Cost_Social) > 0) bioTags.push(`<span style="color: var(--accent-red); margin-right: 6px;">📉 -${card.Cost_Social} Social</span>`);
+            if (Logic.getSafeInt(card.Cost_Money) > 0) bioTags.push(`<span style="color: var(--accent-red); margin-right: 6px;">💸 -₹${card.Cost_Money}</span>`);
+            if (Logic.getSafeInt(card.Cost_Stress) > 0) bioTags.push(`<span style="color: var(--accent-red); margin-right: 6px;">🤯 +${card.Cost_Stress} Stress</span>`);
+            
+            // Positive impacts (Rewards like Study points from projects)
+            if (Logic.getSafeInt(card.Reward_Study) > 0) bioTags.push(`<span style="color: var(--accent-blue); margin-right: 6px;">📚 +${card.Reward_Study} Study</span>`);
+            if (Logic.getSafeInt(card.Reward_Health) > 0) bioTags.push(`<span style="color: var(--accent-green); margin-right: 6px;">❤️ +${card.Reward_Health} Health</span>`);
+            if (Logic.getSafeInt(card.Reward_Social) > 0) bioTags.push(`<span style="color: var(--accent-green); margin-right: 6px;">🤝 +${card.Reward_Social} Social</span>`);
+
+            const bioHtml = bioTags.length > 0 ? `<div style="margin-top: 6px; font-size: 0.8em; font-weight: bold;">${bioTags.join('')}</div>` : '';
 
             return `
-                <div class="opp-card ${isLocked ? 'locked' : ''}">
+                <div class="opp-card ${isLocked ? 'locked' : ''}" style="display: flex; flex-direction: column; justify-content: space-between;">
                     <div>
-                        <div style="font-weight: bold; font-size: 1.05em;">${card['Card Name'] || card.ID}</div>
-                        <div style="font-size: 0.9em; color: var(--text-muted); margin-top: 5px;">Cost: <span style="color: var(--accent-blue);">${cost} blocks</span></div>
-                        <div style="font-size: 0.85em; margin-top: 8px; line-height: 1.4;">${card.Description || 'An opportunity awaits.'}</div>
-                        ${rewardsHtml}
-                        ${reqHTML ? `<div style="margin-top: 8px;">${reqHTML}</div>` : ''}
+                        <div style="font-weight: bold; font-size: 1.05em; color: var(--text-main);">${card['Card Name'] || card.ID}</div>
+                        <div style="font-size: 0.9em; color: var(--text-muted); margin-top: 5px;">Time Cost: <span style="color: var(--accent-blue); font-weight: bold;">${costTime} blocks</span></div>
+                        <div style="font-size: 0.85em; margin-top: 8px; line-height: 1.4; color: #aaa;">${card.Description || card.Flavor_Text || 'Advance your profile.'}</div>
+                        ${resumeHtml}
+                        ${bioHtml}
+                        ${reqHTML ? `<div style="margin-top: 8px; font-size: 0.8em;"><strong>Prerequisites:</strong><br>${reqHTML}</div>` : ''}
                     </div>
-                    <button class="draft-btn" onclick="CampusSimulator.draftCard('${card.ID}')" ${isLocked || !isAffordable ? 'disabled' : ''}>
+                    <button class="draft-btn" onclick="CampusSimulator.draftCard('${card.ID}')" ${isLocked || !isAffordable ? 'disabled' : ''} style="margin-top: 15px;">
                         ${isLocked ? '🔒 Locked' : !isAffordable ? '❌ Cannot Afford' : '✅ Draft'}
                     </button>
                 </div>
