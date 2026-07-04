@@ -86,34 +86,75 @@ const UI = {
         `;
     },
 
-    renderSocialMaintenanceModal: function (networkList, availableBlocks) {
+    renderSocialMaintenanceModal: function(networkList, availableBlocks) {
         const friendsHTML = networkList.map(conn => {
-            const cost = 1;
+            // Find the rich data from the database
+            const card = db.social.find(s => s.ID === conn.id);
+            if (!card) return '';
+
+            const costTime = Logic.getSafeInt(card.Cost_Time) || 1; // Default to 1 block
+            const costMoney = Logic.getSafeInt(card.Cost_Money);
+            const costStress = Logic.getSafeInt(card.Cost_Stress);
+
+            // Build Reward Tags to show the player exactly what they are buying
+            let tags = [];
+            if (Logic.getSafeInt(card.Reward_Study) > 0) tags.push(`<span style="color: var(--accent-blue);">+${card.Reward_Study} Study</span>`);
+            if (Logic.getSafeInt(card.Reward_Health) > 0) tags.push(`<span style="color: var(--accent-green);">+${card.Reward_Health} Health</span>`);
+            if (Logic.getSafeInt(card.Reward_Social) > 0) tags.push(`<span style="color: var(--accent-green);">+${card.Reward_Social} Social</span>`);
+            if (Logic.getSafeInt(card.Reward_Stress) > 0) tags.push(`<span style="color: var(--accent-green);">-${card.Reward_Stress} Stress</span>`);
+            
+            // Career one-time hints
+            let careerTags = [];
+            if (Logic.getSafeInt(card.Reward_Algo) > 0) careerTags.push(`Algo`);
+            if (Logic.getSafeInt(card.Reward_Res) > 0) careerTags.push(`Res`);
+            if (Logic.getSafeInt(card.Reward_Prod) > 0) careerTags.push(`Prod`);
+            if (Logic.getSafeInt(card.Reward_POR) > 0) careerTags.push(`POR`);
+            
+            const careerHtml = careerTags.length > 0 && !(state.mentorBonusesClaimed && state.mentorBonusesClaimed.includes(card.ID)) 
+                ? `<div style="font-size: 0.8em; color: var(--accent-gold); margin-top: 4px;">🎓 Grants One-Time Career Bonus: ${careerTags.join(', ')}</div>` 
+                : '';
+
+            // Extra Costs beyond time
+            const extraCosts = [];
+            if (costMoney > 0) extraCosts.push(`-₹${costMoney}`);
+            if (costStress > 0) extraCosts.push(`+${costStress} Stress`);
+            const costHtml = extraCosts.length > 0 ? `<span style="color: var(--accent-red); font-size: 0.8em; margin-left: 8px;">(${extraCosts.join(', ')})</span>` : '';
 
             return `
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">
-                    <label style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                        <input type="checkbox" class="social-checkbox" value="${conn.id}" data-cost="${cost}" checked>
-                        <span style="color: var(--text-main); font-weight: bold;">${conn.name}</span>
+                <div style="margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px;">
+                    <label style="cursor: pointer; display: flex; align-items: flex-start; gap: 10px;">
+                        <input type="checkbox" class="social-checkbox" value="${conn.id}" data-cost="${costTime}" style="margin-top: 4px;" checked>
+                        <div style="flex-grow: 1;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="color: var(--text-main); font-weight: bold; font-size: 1.1em;">${conn.name}</span>
+                                <span style="color: var(--accent-blue); font-size: 0.9em; font-weight: bold;">${costTime} Block${costHtml}</span>
+                            </div>
+                            <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 4px; font-style: italic;">
+                                "${card.Flavor_Text || 'Maintained for bonuses.'}"
+                            </div>
+                            <div style="margin-top: 6px; font-size: 0.85em; font-weight: bold;">
+                                ${tags.join(' | ')}
+                            </div>
+                            ${careerHtml}
+                        </div>
                     </label>
-                    <span style="color: var(--accent-blue); font-size: 0.9em;">${cost} Block</span>
                 </div>
             `;
         }).join('');
 
         return `
             <div id="social-maintenance-modal" class="modal-overlay" style="z-index: 10000; animation: fadeIn 0.3s ease-out;">
-                <div class="modal-content" style="max-width: 400px; border: 1px solid var(--accent-purple);">
-                    <h2 style="color: var(--accent-purple); margin-bottom: 15px;">🤝 Maintain Network</h2>
-                    <p style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 20px;">
-                        Friendships require time. Select who to spend time with this semester. Inactive friends grant no bonuses.
+                <div class="modal-content" style="max-width: 450px; border: 1px solid var(--accent-purple); text-align: left;">
+                    <h2 style="color: var(--accent-purple); margin-bottom: 10px; text-align: center;">🤝 Maintain Network</h2>
+                    <p style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 15px; text-align: center;">
+                        Friendships require time and energy. Select who to invest in this semester.
                     </p>
                     
-                    <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; text-align: left; max-height: 250px; overflow-y: auto;">
+                    <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; max-height: 350px; overflow-y: auto;">
                         ${friendsHTML}
                     </div>
                     
-                    <div style="margin-top: 20px; font-size: 1.1em; font-weight: bold;">
+                    <div style="margin-top: 20px; font-size: 1.1em; font-weight: bold; text-align: center;">
                         Total Cost: <span id="maintenance-cost-display">0</span> / ${availableBlocks} Blocks
                     </div>
                     
@@ -242,12 +283,12 @@ const UI = {
         document.getElementById('event-log').innerHTML = logHTML;
     },
 
-    updateNetworkPanel: function (network) {
+    updateNetworkPanel: function(network) {
         const container = document.getElementById('active-connections');
-        if (!container) return;
-
+        if (!container) return; 
+        
         if (network.length === 0) {
-            container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9em; font-style: italic;">No connections yet. Visit locations to meet people.</p>`;
+            container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9em; font-style: italic;">No connections yet. Visit locations frequently to build your network.</p>`;
             return;
         }
 
@@ -255,7 +296,7 @@ const UI = {
             <div style="background: #2a2a2a; border-left: 3px solid var(--accent-green); padding: 10px; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
                 <div style="font-weight: bold; font-size: 1.05em; color: var(--text-main);">🤝 ${conn.name}</div>
                 <div style="font-size: 0.75em; color: var(--accent-blue); text-transform: uppercase; margin-top: 3px; letter-spacing: 0.5px;">${conn.category}</div>
-                <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 6px; line-height: 1.3;">Maintained for Semester Bonuses</div>
+                <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 6px; line-height: 1.3; font-style: italic;">"${conn.passiveDesc || 'A valuable campus connection.'}"</div>
             </div>
         `).join('');
     },
