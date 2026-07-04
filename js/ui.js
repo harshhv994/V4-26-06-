@@ -581,7 +581,8 @@ const UI = {
             <h2 style="margin-bottom: 15px;">Locations</h2>
             ${locations.map(loc => {
                 const costTime = Logic.getSafeInt(loc.Cost_Time);
-                const isAffordable = Logic.validateAction(loc).allowed;
+                const validation = Logic.validateAction(loc);
+                const isAffordable = validation.allowed;
                 
                 // Dynamically build tags based on CSV data
                 let tags = [];
@@ -599,14 +600,17 @@ const UI = {
                 if (Logic.getSafeInt(loc.Reward_Stress) > 0) tags.push(`<span style="color: var(--accent-green); margin-right: 8px; font-weight: bold;">😌 -${loc.Reward_Stress} Stress</span>`);
 
                 const tagHtml = tags.length > 0 ? `<div style="margin-top: 8px; font-size: 0.85em; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px;">${tags.join('')}</div>` : '';
+                
+                const lockHtml = !isAffordable ? `<div style="margin-top: 10px; color: var(--accent-red); font-size: 0.85em; font-weight: bold; padding: 6px; background: rgba(255,0,0,0.1); border-left: 3px solid var(--accent-red);">🔒 ${validation.reason}</div>` : '';
 
-                return `<div class="game-card ${isAffordable ? 'clickable' : 'disabled'}" onclick="${isAffordable ? `CampusSimulator.takeLocationAction('${loc.ID}')` : ''}" style="cursor: ${isAffordable ? 'pointer' : 'not-allowed'}; margin-bottom: 12px;">
+                return `<div class="game-card ${isAffordable ? 'clickable' : 'disabled'}" onclick="${isAffordable ? `CampusSimulator.takeLocationAction('${loc.ID}')` : ''}" style="cursor: ${isAffordable ? 'pointer' : 'not-allowed'}; margin-bottom: 12px; ${!isAffordable ? 'opacity: 0.85; border-color: #552222;' : ''}">
                     <div class="card-header">
                         <span style="font-weight: bold; font-size: 1.1em; color: var(--text-main);">${loc.Location_Name}</span>
                         <span class="card-cost" style="color: var(--accent-blue);">${costTime} blocks</span>
                     </div>
                     <p class="card-flavor" style="margin-top: 5px; font-size: 0.9em;">${loc.Description || loc.Flavor_Text || 'Spend time here to manage your stats.'}</p>
                     ${tagHtml}
+                    ${lockHtml}
                 </div>`;
             }).join('')}
         </div>`;
