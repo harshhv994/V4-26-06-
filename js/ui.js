@@ -36,6 +36,48 @@ const UI = {
         `;
     },
 
+    renderTimeline: function(currentTurn) {
+        // Map out the 11 major phases of your 4-year degree
+        const phases = [
+            { turn: 1, label: 'Sem 1' },
+            { turn: 2, label: 'Sem 2' },
+            { turn: 3, label: 'Sem 3' },
+            { turn: 4, label: 'Sem 4' },
+            { turn: 5, label: 'Interlude', isSpecial: true },
+            { turn: 6, label: 'Sem 5' },
+            { turn: 7, label: 'Sem 6' },
+            { turn: 8, label: 'Summer', isSpecial: true },
+            { turn: 9, label: 'Sem 7' },
+            { turn: 10, label: 'Placement', isSpecial: true },
+            { turn: 11, label: 'Sem 8' }
+        ];
+
+        const html = phases.map((phase) => {
+            let statusClass = '';
+            if (currentTurn > phase.turn) statusClass = 'completed';
+            else if (currentTurn === phase.turn) statusClass = 'active';
+
+            // Special phases (Interlude, Summer, Placement) get a gold tint when active
+            const specialStyle = (phase.isSpecial && currentTurn === phase.turn) 
+                ? 'color: var(--accent-gold);' 
+                : '';
+                
+            const dotStyle = (phase.isSpecial && currentTurn === phase.turn) 
+                ? 'background: var(--accent-gold); border-color: var(--accent-gold); box-shadow: 0 0 10px rgba(255, 193, 7, 0.6);' 
+                : '';
+
+            return `
+                <div class="timeline-step ${statusClass}" style="${specialStyle}">
+                    <div class="timeline-dot" style="${dotStyle}"></div>
+                    <span>${phase.label}</span>
+                </div>
+            `;
+        }).join('');
+
+        const container = document.getElementById('macro-timeline');
+        if (container) container.innerHTML = html;
+    },
+
     updateHUD: function(stats, resume, turn, semester, blocks) {
         document.getElementById('survival-stats').innerHTML = `
             <div class="stat-box"><span>❤️ Health</span> <span>${Math.max(0, stats.Health)} / 10</span></div>
@@ -75,6 +117,11 @@ const UI = {
             blockText = `<span class="tooltip" style="border-bottom: 1px dashed #888; cursor: help;">⏱️ ${blocks} / ${GAME_CONFIG.TIME_BLOCKS_PER_SEMESTER} Available<span class="tooltip-text"><strong style="color: var(--accent-blue);">Healthy Time Management</strong><br><br>A week contains 24 blocks (168 hrs). 7 are automatically reserved for healthy sleep.<br><br>You have ${GAME_CONFIG.TIME_BLOCKS_PER_SEMESTER} discretionary blocks to spend.</span></span>`;
         }
         document.getElementById('time-tracker').innerHTML = `Sem ${semester} | Turn ${turn} | ${blockText}`;
+        // --- NEW: Trigger the Progress Bar ---
+        if (typeof this.renderTimeline === 'function') {
+            this.renderTimeline(turn);
+        }
+
     },
 
     renderAction: function(locations, blocksRemaining) {
