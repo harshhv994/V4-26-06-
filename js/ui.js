@@ -1,5 +1,72 @@
 // --- 3. UI LAYER (Rendering) ---
 const UI = {
+    renderFrictionGrid: function(predeterminedEvent, onAcknowledgeCallback) {
+        // 1. Generate the HTML for the back of the card (The actual event)
+        const eventTitle = predeterminedEvent['Card Name'] || predeterminedEvent.ID;
+        const eventDesc = predeterminedEvent['Flavor_Text'] || predeterminedEvent.Description || '';
+        
+        const backFaceHTML = `
+            <div style="font-weight: bold; color: var(--accent-red); font-size: 1.0em; margin-bottom: 8px;">${eventTitle}</div>
+            <div style="font-size: 0.8em; color: var(--text-main); font-style: italic;">"${eventDesc}"</div>
+            <button class="draft-btn" id="acknowledge-friction-btn" style="margin-top: 15px; width: 100%; opacity: 0; transition: opacity 0.5s;">Accept Fate</button>
+        `;
+
+        // 2. Generate the 9 cards. EVERY card hides the exact same event.
+        let gridHTML = '';
+        for (let i = 0; i < 9; i++) {
+            gridHTML += `
+                <div class="fate-card" data-index="${i}">
+                    <div class="fate-card-inner">
+                        <div class="fate-card-front">?</div>
+                        <div class="fate-card-back">${backFaceHTML}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 3. Render to the board
+        const board = document.getElementById('board-panel');
+        if (board) {
+            board.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h2 style="color: var(--accent-red);">Campus Friction</h2>
+                    <p style="color: var(--text-muted);">Pick a tile to reveal your fate this semester.</p>
+                </div>
+                <div class="friction-grid" id="friction-grid">${gridHTML}</div>
+            `;
+        }
+
+        // 4. Attach the "Smoke and Mirrors" click logic
+        let hasFlipped = false;
+        const cards = document.querySelectorAll('.fate-card');
+        
+        cards.forEach(card => {
+            card.addEventListener('click', function() {
+                if (hasFlipped) return; // Prevent multiple clicks
+                hasFlipped = true;
+
+                // Flip the clicked card
+                this.classList.add('flipped');
+
+                // Fade out the other 8 cards
+                cards.forEach(c => {
+                    if (c !== this) c.classList.add('fade-out');
+                });
+
+                // Show the "Accept Fate" button on the flipped card after the 3D flip finishes
+                setTimeout(() => {
+                    const btn = this.querySelector('#acknowledge-friction-btn');
+                    if (btn) {
+                        btn.style.opacity = '1';
+                        btn.addEventListener('click', () => {
+                            onAcknowledgeCallback(); 
+                        });
+                    }
+                }, 600); // 600ms matches the CSS transition time
+            });
+        });
+    },
+
     renderAcademicTracker: function(currentStudy) {
         // Find where the player currently sits on the grading scale
         let activeIndex = GAME_CONFIG.SPI_GRADING_SCALE.findIndex(g => currentStudy >= g.min);

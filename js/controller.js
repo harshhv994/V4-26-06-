@@ -131,10 +131,20 @@ const Controller = {
     startFriction: function () {
         const eventCard = Logic.drawRandomFriction();
         if (eventCard) {
-            const result = Logic.processCardEffect(eventCard, 'friction');
-            Logic.addLog(result);
+            UI.renderFrictionGrid(eventCard, () => {
+                const result = Logic.processCardEffect(eventCard, 'friction');
+                
+                // Add log with the correct result
+                Logic.addLog(result);
+                
+                Controller.syncHUD();
+                
+                // Then draw the standard friction modal so player can manually proceed
+                UI.updateBoard(UI.renderFriction(eventCard));
+            });
+        } else {
+            UI.updateBoard(UI.renderFriction(eventCard));
         }
-        UI.updateBoard(UI.renderFriction(eventCard));
     },
 
     startOpportunity: function () {
