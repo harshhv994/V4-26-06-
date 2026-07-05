@@ -698,65 +698,6 @@ const UI = {
         </div>`;
     },
 
-    renderOpportunity: function (tabData, activeTab) {
-        // Dynamically check if player is in 2nd Year (Sem 3+) to unlock the tab
-        const showInternTab = typeof state !== 'undefined' && state.semester >= 3;
-
-        return `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h2 style="margin: 0;">Opportunities</h2>
-            </div>
-            <div class="tabs">
-                <button class="tab-btn ${activeTab === 'projects' ? 'active' : ''}" onclick="CampusSimulator.switchTab('projects')">📋 Projects</button>
-                <button class="tab-btn ${activeTab === 'pors' ? 'active' : ''}" onclick="CampusSimulator.switchTab('pors')">👑 PORs</button>
-                ${showInternTab ? `<button class="tab-btn ${activeTab === 'interns' ? 'active' : ''}" onclick="CampusSimulator.switchTab('interns')">💼 Off-Campus</button>` : ''}
-            </div>
-            <div class="card-grid">
-                ${tabData.map(item => item.html).join('')}
-            </div>
-        `;
-    },
-
-    renderAction: function(locations, blocksRemaining) {
-        return `<div style="width: 100%; max-width: 600px;">
-            <h2 style="margin-bottom: 15px;">Locations</h2>
-            ${locations.map(loc => {
-                const costTime = Logic.getSafeInt(loc.Cost_Time);
-                const validation = Logic.validateAction(loc);
-                const isAffordable = validation.allowed;
-                
-                // Dynamically build tags based on CSV data
-                let tags = [];
-                
-                // Negative impacts (Costs)
-                if (Logic.getSafeInt(loc.Cost_Health) > 0) tags.push(`<span style="color: var(--accent-red); margin-right: 8px; font-weight: bold;">💔 -${loc.Cost_Health} Health</span>`);
-                if (Logic.getSafeInt(loc.Cost_Social) > 0) tags.push(`<span style="color: var(--accent-red); margin-right: 8px; font-weight: bold;">📉 -${loc.Cost_Social} Social</span>`);
-                if (Logic.getSafeInt(loc.Cost_Money) > 0) tags.push(`<span style="color: var(--accent-red); margin-right: 8px; font-weight: bold;">💸 -₹${loc.Cost_Money}</span>`);
-                if (Logic.getSafeInt(loc.Cost_Stress) > 0) tags.push(`<span style="color: var(--accent-red); margin-right: 8px; font-weight: bold;">🤯 +${loc.Cost_Stress} Stress</span>`);
-                
-                // Positive impacts (Rewards)
-                if (Logic.getSafeInt(loc.Reward_Study) > 0) tags.push(`<span style="color: var(--accent-blue); margin-right: 8px; font-weight: bold;">📚 +${loc.Reward_Study} Study</span>`);
-                if (Logic.getSafeInt(loc.Reward_Health) > 0) tags.push(`<span style="color: var(--accent-green); margin-right: 8px; font-weight: bold;">❤️ +${loc.Reward_Health} Health</span>`);
-                if (Logic.getSafeInt(loc.Reward_Social) > 0) tags.push(`<span style="color: var(--accent-green); margin-right: 8px; font-weight: bold;">🤝 +${loc.Reward_Social} Social</span>`);
-                if (Logic.getSafeInt(loc.Reward_Stress) > 0) tags.push(`<span style="color: var(--accent-green); margin-right: 8px; font-weight: bold;">😌 -${loc.Reward_Stress} Stress</span>`);
-
-                const tagHtml = tags.length > 0 ? `<div style="margin-top: 8px; font-size: 0.85em; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px;">${tags.join('')}</div>` : '';
-                
-                const lockHtml = !isAffordable ? `<div style="margin-top: 10px; color: var(--accent-red); font-size: 0.85em; font-weight: bold; padding: 6px; background: rgba(255,0,0,0.1); border-left: 3px solid var(--accent-red);">🔒 ${validation.reason}</div>` : '';
-
-                return `<div class="game-card ${isAffordable ? 'clickable' : 'disabled'}" onclick="${isAffordable ? `CampusSimulator.takeLocationAction('${loc.ID}')` : ''}" style="cursor: ${isAffordable ? 'pointer' : 'not-allowed'}; margin-bottom: 12px; ${!isAffordable ? 'opacity: 0.85; border-color: #552222;' : ''}">
-                    <div class="card-header">
-                        <span style="font-weight: bold; font-size: 1.1em; color: var(--text-main);">${loc.Location_Name}</span>
-                        <span class="card-cost" style="color: var(--accent-blue);">${costTime} blocks</span>
-                    </div>
-                    <p class="card-flavor" style="margin-top: 5px; font-size: 0.9em;">${loc.Description || loc.Flavor_Text || 'Spend time here to manage your stats.'}</p>
-                    ${tagHtml}
-                    ${lockHtml}
-                </div>`;
-            }).join('')}
-        </div>`;
-    },
-
     components: {
         buildMasterCard: function(cardData, config) {
             const isDisabled = config.isLocked;
