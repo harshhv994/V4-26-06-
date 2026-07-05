@@ -81,18 +81,18 @@ const UI = {
         const cardsHTML = locations.map(loc => {
             const validation = Logic.validateAction(loc);
             
-            // --- NEW: Calculate Social Unlock Progress ---
             let socialHTML = '';
             
-            // Safely check if this location has a friend tied to it in social.csv
+            // Bulletproof string matching: Clean spaces and standardize case
             if (typeof db !== 'undefined' && db.social && typeof state !== 'undefined') {
-                const linkedSocial = db.social.find(s => s.Location_Trigger === loc.Location_Name);
+                const locName = String(loc.Location_Name || '').trim().toUpperCase();
+                const linkedSocial = db.social.find(s => String(s.Location_Trigger || '').trim().toUpperCase() === locName);
                 
                 if (linkedSocial) {
-                    // Initialize the tracker safely if it doesn't exist yet
                     if (!state.locationVisits) state.locationVisits = {};
                     
-                    const visitsDone = state.locationVisits[loc.Location_Name] || 0;
+                    const originalLocName = String(loc.Location_Name || '').trim();
+                    const visitsDone = state.locationVisits[originalLocName] || 0;
                     const visitsNeeded = parseInt(linkedSocial.Visits_Needed) || 1;
                     const isUnlocked = state.network && state.network.some(n => n.id === linkedSocial.ID);
                     
@@ -110,7 +110,7 @@ const UI = {
                 buttonText: `Visit ${loc.Location_Name}`, 
                 isLocked: !validation.allowed,
                 lockReason: validation.allowed ? null : validation.reason,
-                extraHTML: socialHTML // Passing the tracker to the master component!
+                extraHTML: socialHTML 
             });
         }).join('');
 
@@ -762,13 +762,14 @@ const UI = {
             const isDisabled = config.isLocked;
             const costTime = Logic.getSafeInt(cardData.Cost_Time);
             
-            // --- 1. Compile Career Rewards ---
             let careerHTML = '';
             let careerTags = [];
             
-            // NEW: Explicitly expose the hidden base rewards!
-            if (cardData.Type === 'PROJECT') careerTags.push(`📋 +1 Project`);
-            if (cardData.Type === 'INTERNSHIP') careerTags.push(`💼 +1 Work`);
+            // Bulletproof string matching for the Type column
+            const cardType = String(cardData.Type || '').trim().toUpperCase();
+            
+            if (cardType === 'PROJECT') careerTags.push(`📋 +1 Project`);
+            if (cardType === 'INTERNSHIP') careerTags.push(`💼 +1 Work`);
 
             if (Logic.getSafeInt(cardData.Reward_Algo) > 0) careerTags.push(`💻 +${cardData.Reward_Algo} Algo`);
             if (Logic.getSafeInt(cardData.Reward_Res) > 0) careerTags.push(`🔬 +${cardData.Reward_Res} Res`);
@@ -778,7 +779,6 @@ const UI = {
                 careerHTML = careerTags.map(tag => `<span class="pill career">${tag}</span>`).join('');
             }
 
-            // --- 2. Compile Biological Costs & Rewards ---
             let bioHTML = '';
             if (Logic.getSafeInt(cardData.Cost_Health) > 0) bioHTML += `<span class="pill cost">💔 -${cardData.Cost_Health} Health</span>`;
             if (Logic.getSafeInt(cardData.Cost_Social) > 0) bioHTML += `<span class="pill cost">📉 -${cardData.Cost_Social} Social</span>`;
@@ -790,17 +790,14 @@ const UI = {
             if (Logic.getSafeInt(cardData.Reward_Social) > 0) bioHTML += `<span class="pill reward">🤝 +${cardData.Reward_Social} Social</span>`;
             if (Logic.getSafeInt(cardData.Reward_Stress) > 0) bioHTML += `<span class="pill reward">😌 -${cardData.Reward_Stress} Stress</span>`;
 
-            // --- 3. Compile Alerts & Requirements ---
             let alertHTML = '';
             if (config.lockReason) {
                 alertHTML = `<div class="card-warning">🔒 ${config.lockReason}</div>`;
             }
             let reqBlock = config.reqHTML ? `<div class="req-block"><strong>Prerequisites:</strong><br>${config.reqHTML}</div>` : '';
             
-            // NEW: Support for extra injected HTML (like the Social Progress Tracker)
             let extraBlock = config.extraHTML ? config.extraHTML : '';
 
-            // --- 4. Render Final HTML ---
             const title = cardData['Card Name'] || cardData.Location_Name || cardData.ID;
             const desc = cardData.Flavor_Text || cardData.Description || 'Action details unknown.';
             
@@ -831,4 +828,4 @@ const UI = {
             `;
         }
     }
-}
+};;
