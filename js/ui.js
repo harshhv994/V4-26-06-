@@ -1,17 +1,44 @@
 // --- 3. UI LAYER (Rendering) ---
 const UI = {
     renderFrictionGrid: function(predeterminedEvent, onAcknowledgeCallback) {
-        // 1. Generate the HTML for the back of the card (The actual event)
         const eventTitle = predeterminedEvent['Card Name'] || predeterminedEvent.ID;
-        const eventDesc = predeterminedEvent['Flavor_Text'] || predeterminedEvent.Description || '';
-        
+        const eventDesc = predeterminedEvent['Flavor_Text'] || predeterminedEvent.Description || 'Campus life strikes again.';
+
+        // --- NEW: Generate the Stat Pills for Transparency ---
+        let bioHTML = '';
+        const safeInt = (val) => parseInt(val) || 0;
+
+        // Extract Costs (Negative impacts)
+        if (safeInt(predeterminedEvent.Cost_Time) > 0) bioHTML += `<span class="pill cost">🕒 -${safeInt(predeterminedEvent.Cost_Time)} Time</span>`;
+        if (safeInt(predeterminedEvent.Cost_Health) > 0) bioHTML += `<span class="pill cost">💔 -${safeInt(predeterminedEvent.Cost_Health)} Health</span>`;
+        if (safeInt(predeterminedEvent.Cost_Social) > 0) bioHTML += `<span class="pill cost">📉 -${safeInt(predeterminedEvent.Cost_Social)} Social</span>`;
+        if (safeInt(predeterminedEvent.Cost_Money) > 0) bioHTML += `<span class="pill cost">💸 -₹${safeInt(predeterminedEvent.Cost_Money)}</span>`;
+        if (safeInt(predeterminedEvent.Cost_Stress) > 0) bioHTML += `<span class="pill cost">🤯 +${safeInt(predeterminedEvent.Cost_Stress)} Stress</span>`;
+
+        // Extract Rewards (Positive impacts)
+        if (safeInt(predeterminedEvent.Reward_Study) > 0) bioHTML += `<span class="pill study">📚 +${safeInt(predeterminedEvent.Reward_Study)} Study</span>`;
+        if (safeInt(predeterminedEvent.Reward_Health) > 0) bioHTML += `<span class="pill reward">❤️ +${safeInt(predeterminedEvent.Reward_Health)} Health</span>`;
+        if (safeInt(predeterminedEvent.Reward_Social) > 0) bioHTML += `<span class="pill reward">🤝 +${safeInt(predeterminedEvent.Reward_Social)} Social</span>`;
+        if (safeInt(predeterminedEvent.Reward_Stress) > 0) bioHTML += `<span class="pill reward">😌 -${safeInt(predeterminedEvent.Reward_Stress)} Stress</span>`;
+        if (safeInt(predeterminedEvent.Reward_Money) > 0) bioHTML += `<span class="pill reward">💰 +₹${safeInt(predeterminedEvent.Reward_Money)}</span>`;
+
+        const pillContainer = bioHTML !== '' 
+            ? `<div class="pill-container" style="justify-content: center; margin-top: 10px;">${bioHTML}</div>` 
+            : `<div class="pill-container" style="justify-content: center; margin-top: 10px;"><span class="pill reward">Narrative Only</span></div>`;
+
+        // Assemble the back of the card
         const backFaceHTML = `
-            <div style="font-weight: bold; color: var(--accent-red); font-size: 1.0em; margin-bottom: 8px;">${eventTitle}</div>
-            <div style="font-size: 0.8em; color: var(--text-main); font-style: italic;">"${eventDesc}"</div>
-            <button class="draft-btn" id="acknowledge-friction-btn" style="margin-top: 15px; width: 100%; opacity: 0; transition: opacity 0.5s;">Accept Fate</button>
+            <div style="display: flex; flex-direction: column; align-items: center; text-align: center; height: 100%;">
+                <div style="font-weight: bold; color: var(--accent-red); font-size: 1.1em; margin-bottom: 5px;">${eventTitle}</div>
+                <div style="font-size: 0.85em; color: var(--text-main); font-style: italic; line-height: 1.4;">"${eventDesc}"</div>
+                
+                ${pillContainer}
+                
+                <button class="draft-btn" id="acknowledge-friction-btn" style="margin-top: auto; width: 100%; opacity: 0; transition: opacity 0.5s; background: rgba(244,67,54,0.2); color: var(--accent-red); border-color: var(--accent-red);">Accept Fate</button>
+            </div>
         `;
 
-        // 2. Generate the 9 cards. EVERY card hides the exact same event.
+        // Generate the 9 illusion cards
         let gridHTML = '';
         for (let i = 0; i < 9; i++) {
             gridHTML += `
@@ -24,45 +51,40 @@ const UI = {
             `;
         }
 
-        // 3. Render to the board
         const board = document.getElementById('board-panel');
-        if (board) {
-            board.innerHTML = `
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <h2 style="color: var(--accent-red);">Campus Friction</h2>
-                    <p style="color: var(--text-muted);">Pick a tile to reveal your fate this semester.</p>
-                </div>
-                <div class="friction-grid" id="friction-grid">${gridHTML}</div>
-            `;
-        }
+        if (!board) return;
 
-        // 4. Attach the "Smoke and Mirrors" click logic
+        board.innerHTML = `
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="color: var(--accent-red);">Campus Friction</h2>
+                <p style="color: var(--text-muted);">Pick a tile to reveal your fate this semester.</p>
+            </div>
+            <div class="friction-grid" id="friction-grid">${gridHTML}</div>
+        `;
+
         let hasFlipped = false;
         const cards = document.querySelectorAll('.fate-card');
         
         cards.forEach(card => {
             card.addEventListener('click', function() {
-                if (hasFlipped) return; // Prevent multiple clicks
+                if (hasFlipped) return; 
                 hasFlipped = true;
 
-                // Flip the clicked card
                 this.classList.add('flipped');
 
-                // Fade out the other 8 cards
                 cards.forEach(c => {
                     if (c !== this) c.classList.add('fade-out');
                 });
 
-                // Show the "Accept Fate" button on the flipped card after the 3D flip finishes
                 setTimeout(() => {
                     const btn = this.querySelector('#acknowledge-friction-btn');
                     if (btn) {
                         btn.style.opacity = '1';
                         btn.addEventListener('click', () => {
-                            onAcknowledgeCallback(); 
+                            if (typeof onAcknowledgeCallback === 'function') onAcknowledgeCallback(); 
                         });
                     }
-                }, 600); // 600ms matches the CSS transition time
+                }, 600); 
             });
         });
     },

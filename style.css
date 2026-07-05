@@ -302,7 +302,7 @@ footer { background-color: var(--panel-bg); padding: 15px 20px; display: flex; j
 /* --- The 3D Flipping Card --- */
 .fate-card {
     background: transparent;
-    height: 140px;
+    height: 220px;
     cursor: pointer;
     transition: transform 0.3s ease, opacity 0.5s ease;
 }
@@ -358,7 +358,9 @@ footer { background-color: var(--panel-bg); padding: 15px 20px; display: flex; j
 
 /* The Revealed Side (Face Up) */
 .fate-card-back {
-    background: rgba(244, 67, 54, 0.1); /* Subtle red tint */
+    background: rgba(244, 67, 54, 0.05);
+    justify-content: space-between;
+    padding: 12px; /* Subtle red tint */
     border-color: var(--accent-red);
     transform: rotateY(180deg);
 }
