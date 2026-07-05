@@ -180,3 +180,35 @@ footer { background-color: var(--panel-bg); padding: 15px 20px; display: flex; j
     0% { transform: scale(0.95); opacity: 0; }
     100% { transform: scale(1); opacity: 1; }
 }
+
+
+/* --- Academic SPI Tracker --- */
+.spi-tracker { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 4px; 
+    margin-top: 10px;
+}
+.spi-tier {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    padding: 6px 10px; 
+    border-radius: 4px; 
+    font-size: 0.85em;
+    background: rgba(0,0,0,0.2); 
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    transition: all 0.2s ease;
+}
+.spi-tier.active {
+    background: rgba(74, 144, 226, 0.15);
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+    font-weight: bold;
+    transform: scale(1.02);
+}
+.spi-tier.next-goal {
+    border-left: 3px solid var(--accent-gold);
+    color: var(--text-main);
+}

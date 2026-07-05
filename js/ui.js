@@ -1,7 +1,42 @@
 // --- 3. UI LAYER (Rendering) ---
 const UI = {
+    renderAcademicTracker: function(currentStudy) {
+        // Find where the player currently sits on the grading scale
+        let activeIndex = GAME_CONFIG.SPI_GRADING_SCALE.findIndex(g => currentStudy >= g.min);
+        if (activeIndex === -1) activeIndex = GAME_CONFIG.SPI_GRADING_SCALE.length - 1; // Baseline if 0
+
+        const scaleHTML = GAME_CONFIG.SPI_GRADING_SCALE.map((grade, index) => {
+            const isActive = index === activeIndex;
+            const isNext = index === activeIndex - 1; // The next grade up
+            
+            let tierClass = 'spi-tier';
+            if (isActive) tierClass += ' active';
+            if (isNext) tierClass += ' next-goal';
+
+            const pointsText = index === 0 ? `${grade.min}+ pts` : `${grade.min} pts`;
+            
+            return `
+                <div class="${tierClass}">
+                    <span>${grade.spi.toFixed(2)} SPI</span>
+                    <span style="${isActive ? '' : 'opacity: 0.7;'}">${pointsText}</span>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div style="font-size: 0.95em; color: var(--text-main); margin-bottom: 5px;">
+                Current Study: <strong style="color: var(--accent-blue); font-size: 1.3em;">${currentStudy}</strong>
+            </div>
+            <div class="spi-tracker">
+                ${scaleHTML}
+            </div>
+            <div style="margin-top: 15px; font-size: 0.8em; color: var(--text-muted); font-style: italic; line-height: 1.4;">
+                * <strong>SPI is calculated at the end of the semester.</strong> Hover over locations to see how many points they award.
+            </div>
+        `;
+    },
+
     updateHUD: function(stats, resume, turn, semester, blocks) {
-        // Update Survival (Left Panel Vertical)
         document.getElementById('survival-stats').innerHTML = `
             <div class="stat-box"><span>❤️ Health</span> <span>${Math.max(0, stats.Health)} / 10</span></div>
             <div class="stat-box"><span>👥 Social</span> <span>${stats.Social} / 10</span></div>
@@ -14,7 +49,6 @@ const UI = {
             <div class="stat-box"><span>💵 Money</span> <span>₹${stats.Money}</span></div>
         `;
         
-        // Update Resume (Left Panel Vertical)
         document.getElementById('resume-stats').innerHTML = `
             <div class="stat-box" style="border-color: var(--accent-gold); color: var(--accent-gold);">
                 <span>📈 CPI</span> <span>${(stats.CPI || 0).toFixed(2)}</span>
@@ -29,17 +63,89 @@ const UI = {
             <div class="stat-box"><span>🚀 Prod</span> <span>${resume.Product || 0}</span></div>
         `;
         
-        // Update Time Panel (Footer)
+        // --- NEW: Trigger the Academic Tracker Update ---
+        const trackerDiv = document.getElementById('academic-tracker');
+        if (trackerDiv) trackerDiv.innerHTML = this.renderAcademicTracker(stats.Study);
+
         let blockText = '';
-        const narrativeTurns = [5, 8, 10]; // Interlude, Summer, Placement
-        
+        const narrativeTurns = [5, 8, 10]; 
         if (narrativeTurns.includes(turn)) {
             blockText = `Blocks: 0`;
         } else {
             blockText = `<span class="tooltip" style="border-bottom: 1px dashed #888; cursor: help;">⏱️ ${blocks} / ${GAME_CONFIG.TIME_BLOCKS_PER_SEMESTER} Available<span class="tooltip-text"><strong style="color: var(--accent-blue);">Healthy Time Management</strong><br><br>A week contains 24 blocks (168 hrs). 7 are automatically reserved for healthy sleep.<br><br>You have ${GAME_CONFIG.TIME_BLOCKS_PER_SEMESTER} discretionary blocks to spend.</span></span>`;
         }
-
         document.getElementById('time-tracker').innerHTML = `Sem ${semester} | Turn ${turn} | ${blockText}`;
+    },
+
+    renderAction: function(locations, blocksRemaining) {
+        const cardsHTML = locations.map(loc => {
+            const validation = Logic.validateAction(loc);
+            return UI.components.buildMasterCard(loc, {
+                subtitle: 'Location',
+                actionMethod: `CampusSimulator.takeLocationAction('${loc.ID}')`,
+                buttonText: `Visit ${loc.Location_Name}`, 
+                isLocked: !validation.allowed,
+                lockReason: validation.allowed ? null : validation.reason
+            });
+        }).join('');
+
+        return `<div style="width: 100%; max-width: 600px;">
+            <h2 style="margin-bottom: 15px;">Locations</h2>
+            ${cardsHTML}
+        </div>`;
+    },
+
+    renderOpportunity: function(validData, activeTab) {
+        const showInternTab = typeof state !== 'undefined' && state.semester >= 3;
+        
+        // We now generate the UI directly from the raw validData array
+        let cardsHTML = validData.map(card => {
+            const reqEval = Logic.evaluateRequirements(card.Req_Prerequisite);
+            const validation = Logic.validateAction(card);
+            const isCompleted = typeof state !== 'undefined' && state.history.includes(card.ID);
+            
+            // Determine Lock Reason Hierarchically
+            let lockReason = null;
+            if (isCompleted) lockReason = "You have already completed this.";
+            else if (reqEval.locked) lockReason = "Missing prerequisites.";
+            else if (!validation.allowed) lockReason = validation.reason; 
+
+            const isFullyLocked = isCompleted || reqEval.locked || !validation.allowed;
+
+            // DYNAMIC VERB MAPPING
+            let btnVerb = 'Commit';
+            if (isCompleted) btnVerb = 'Already Completed';
+            else if (card.Type === 'PROJECT') btnVerb = 'Start Project';
+            else if (card.Type === 'POR') btnVerb = 'Take Position';
+            else if (card.Type === 'INTERNSHIP') btnVerb = 'Accept Role';
+
+            return UI.components.buildMasterCard(card, {
+                subtitle: card.Category || 'Opportunity',
+                actionMethod: `CampusSimulator.draftCard('${card.ID}')`,
+                buttonText: btnVerb,
+                isLocked: isFullyLocked,
+                lockReason: lockReason,
+                reqHTML: reqEval.html
+            });
+        }).join('');
+        
+        if (cardsHTML === '') {
+            cardsHTML = '<p style="color: var(--text-muted); padding: 15px; font-style: italic;">No new opportunities available for your current semester.</p>';
+        }
+
+        return `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="margin: 0;">Opportunities</h2>
+            </div>
+            <div class="tabs">
+                <button class="tab-btn ${activeTab === 'projects' ? 'active' : ''}" onclick="CampusSimulator.switchTab('projects')">📋 Projects</button>
+                <button class="tab-btn ${activeTab === 'pors' ? 'active' : ''}" onclick="CampusSimulator.switchTab('pors')">👑 PORs</button>
+                ${showInternTab ? `<button class="tab-btn ${activeTab === 'interns' ? 'active' : ''}" onclick="CampusSimulator.switchTab('interns')">💼 Off-Campus</button>` : ''}
+            </div>
+            <div class="card-grid">
+                ${cardsHTML}
+            </div>
+        `;
     },
 
     renderTutorialModal: function () {
@@ -627,6 +733,60 @@ const UI = {
     },
 
     components: {
+        buildMasterCard: function(card, options) {
+            const costTime = Logic.getSafeInt(card.Cost_Time);
+            
+            // Build Career Tokens (The Resume Stats) if they exist
+            let resumeTags = [];
+            if (Logic.getSafeInt(card.Reward_Algo) > 0) resumeTags.push(`💻 +${card.Reward_Algo} Algo`);
+            if (Logic.getSafeInt(card.Reward_Res) > 0) resumeTags.push(`🔬 +${card.Reward_Res} Res`);
+            if (Logic.getSafeInt(card.Reward_Prod) > 0) resumeTags.push(`🚀 +${card.Reward_Prod} Prod`);
+            if (Logic.getSafeInt(card.Reward_POR) > 0) resumeTags.push(`👑 +${card.Reward_POR} POR`);
+            const resumeHtml = resumeTags.length > 0 ? `<div style="margin-top: 8px; font-size: 0.9em; color: var(--accent-gold); font-weight: bold; padding-bottom: 5px; border-bottom: 1px dashed #444;">${resumeTags.join(' | ')}</div>` : '';
+
+            // Build Biological Impacts (Costs and Rewards from the CSV)
+            let bioTags = [];
+            
+            // Negative impacts (Costs)
+            if (Logic.getSafeInt(card.Cost_Health) > 0) bioTags.push(`<span style="color: var(--accent-red); margin-right: 6px;">💔 -${card.Cost_Health} Health</span>`);
+            if (Logic.getSafeInt(card.Cost_Social) > 0) bioTags.push(`<span style="color: var(--accent-red); margin-right: 6px;">📉 -${card.Cost_Social} Social</span>`);
+            if (Logic.getSafeInt(card.Cost_Money) > 0) bioTags.push(`<span style="color: var(--accent-red); margin-right: 6px;">💸 -₹${card.Cost_Money}</span>`);
+            if (Logic.getSafeInt(card.Cost_Stress) > 0) bioTags.push(`<span style="color: var(--accent-red); margin-right: 6px;">🤯 +${card.Cost_Stress} Stress</span>`);
+            
+            // Positive impacts (Rewards like Study points from projects)
+            if (Logic.getSafeInt(card.Reward_Study) > 0) bioTags.push(`<span style="color: var(--accent-blue); margin-right: 6px;">📚 +${card.Reward_Study} Study</span>`);
+            if (Logic.getSafeInt(card.Reward_Health) > 0) bioTags.push(`<span style="color: var(--accent-green); margin-right: 6px;">❤️ +${card.Reward_Health} Health</span>`);
+            if (Logic.getSafeInt(card.Reward_Social) > 0) bioTags.push(`<span style="color: var(--accent-green); margin-right: 6px;">🤝 +${card.Reward_Social} Social</span>`);
+            if (Logic.getSafeInt(card.Reward_Stress) > 0) bioTags.push(`<span style="color: var(--accent-green); margin-right: 6px;">😌 -${card.Reward_Stress} Stress</span>`);
+
+            const bioHtml = bioTags.length > 0 ? `<div style="margin-top: 6px; font-size: 0.8em; font-weight: bold;">${bioTags.join('')}</div>` : '';
+            
+            const lockHtml = options.isLocked && options.lockReason ? `<div style="margin-top: 10px; color: var(--accent-red); font-size: 0.85em; font-weight: bold; padding: 6px; background: rgba(255,0,0,0.1); border-left: 3px solid var(--accent-red);">🔒 ${options.lockReason}</div>` : '';
+
+            const clickHtml = !options.isLocked ? `onclick="${options.actionMethod}"` : '';
+            const cursorHTML = !options.isLocked ? '; cursor: pointer;' : '; cursor: not-allowed;';
+            const name = card['Card Name'] || card.Location_Name || card.ID;
+            
+            return `
+                <div class="game-card ${options.isLocked ? 'locked' : ''} ${!options.isLocked && options.buttonText ? 'clickable' : ''}" ${clickHtml} style="margin-bottom: 12px; ${options.isLocked ? 'opacity: 0.85; border-color: #552222;' : ''} ${cursorHTML}">
+                    <div class="card-header">
+                        <span style="font-weight: bold; font-size: 1.1em; color: var(--text-main);">${name}</span>
+                        <span class="card-cost" style="color: var(--accent-blue);">${costTime} blocks</span>
+                    </div>
+                    <div style="font-size: 0.8em; color: var(--accent-blue); text-transform: uppercase;">${options.subtitle}</div>
+                    <p class="card-flavor" style="margin-top: 5px; font-size: 0.9em;">${card.Description || card.Flavor_Text || 'A campus activity.'}</p>
+                    
+                    ${resumeHtml}
+                    ${bioHtml}
+                    ${options.reqHTML ? `<div style="margin-top: 8px; font-size: 0.8em;"><strong>Prerequisites:</strong><br>${options.reqHTML}</div>` : ''}
+                    ${lockHtml}
+                    
+                    ${options.buttonText && !options.isLocked ? `<div style="margin-top: 15px; text-align: center; color: var(--accent-green); font-weight: bold;">${options.buttonText}</div>` : ''}
+                    ${options.buttonText && options.isLocked ? `<div style="margin-top: 15px; text-align: center; color: var(--accent-red); opacity: 0.6; font-weight: bold;">${options.isLocked === true && options.lockReason === 'You have already completed this.' ? '✅ COMPLETED' : '🔒 LOCKED'}</div>` : ''}
+                </div>
+            `;
+        },
+
         oppCard: function(card, isLocked, isAffordable, reqHTML) {
             const costTime = Logic.getSafeInt(card.Cost_Time);
             
