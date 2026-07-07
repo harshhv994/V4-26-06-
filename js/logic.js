@@ -428,11 +428,18 @@ const Logic = {
             if (card) {
                 let friendSummary = { name: card['Card Name'], rewards: [] };
 
+                // --- 1. Extract Rewards ---
                 const rHealth = parseInt(card.Reward_Health) || 0;
                 const rStudy = parseInt(card.Reward_Study) || 0;
                 const rSocial = parseInt(card.Reward_Social) || 0;
                 const rMoney = parseInt(card.Reward_Money) || 0;
                 const rStress = parseInt(card.Reward_Stress) || 0;
+
+                // --- 2. Extract Costs (THE FIX) ---
+                const cHealth = parseInt(card.Cost_Health) || 0;
+                const cSocial = parseInt(card.Cost_Social) || 0;
+                const cMoney = parseInt(card.Cost_Money) || 0;
+                const cStress = parseInt(card.Cost_Stress) || 0;
 
                 const careerBonusAvailable = !state.mentorBonusesClaimed.includes(id);
                 const rAlgo = careerBonusAvailable ? (parseInt(card.Reward_Algo) || 0) : 0;
@@ -440,13 +447,20 @@ const Logic = {
                 const rRes = careerBonusAvailable ? (parseInt(card.Reward_Res) || 0) : 0;
                 const rProd = careerBonusAvailable ? (parseInt(card.Reward_Prod) || 0) : 0;
 
-                // Apply stats
+                // --- 3. Apply Rewards ---
                 if (rHealth > 0) { state.stats.Health += rHealth; friendSummary.rewards.push(`❤️ +${rHealth}`); }
                 if (rStudy > 0) { state.stats.Study += rStudy; friendSummary.rewards.push(`📚 +${rStudy}`); }
                 if (rSocial > 0) { state.stats.Social += rSocial; friendSummary.rewards.push(`🤝 +${rSocial}`); }
                 if (rMoney > 0) { state.stats.Money += rMoney; friendSummary.rewards.push(`💰 +${rMoney}`); }
                 if (rStress > 0) { state.stats.Stress -= rStress; friendSummary.rewards.push(`😌 -${rStress} Stress`); }
 
+                // --- 4. Apply Costs (THE FIX) ---
+                if (cHealth > 0) { state.stats.Health -= cHealth; friendSummary.rewards.push(`💔 -${cHealth} Health`); }
+                if (cSocial > 0) { state.stats.Social -= cSocial; friendSummary.rewards.push(`📉 -${cSocial} Social`); }
+                if (cMoney > 0) { state.stats.Money -= cMoney; friendSummary.rewards.push(`💸 -₹${cMoney}`); }
+                if (cStress > 0) { state.stats.Stress += cStress; friendSummary.rewards.push(`🤯 +${cStress} Stress`); }
+
+                // --- 5. Apply Career Bonuses ---
                 if (rAlgo > 0) { state.resume.Algo += rAlgo; friendSummary.rewards.push(`💻 +${rAlgo} Algo`); }
                 if (rPOR > 0) { state.resume.Positions += rPOR; friendSummary.rewards.push(`👑 +${rPOR} POR`); }
                 if (rRes > 0) { state.resume.Research += rRes; friendSummary.rewards.push(`🔬 +${rRes} Res`); }
@@ -460,12 +474,7 @@ const Logic = {
             }
         });
 
-        this.clampStats();
+        this.clampStats(); // Ensures stats don't drop below 0 or above 10
         return summary;
     }
-
-
-
-
-
-}; // <--- CLOSING BRACE FOR LOGIC OBJECT
+};
