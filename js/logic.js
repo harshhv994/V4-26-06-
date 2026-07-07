@@ -300,7 +300,7 @@ const Logic = {
             
             // Check if this location triggers the friend, and if the visit count matches exactly
             const matchesLocation = card.Location_Trigger === locName;
-            const meetsVisits = visits === parseInt(card.Visits_Needed);
+            const meetsVisits = visits >= parseInt(card.Visits_Needed);
 
             return inSem && !alreadyOwned && matchesLocation && meetsVisits;
         });
