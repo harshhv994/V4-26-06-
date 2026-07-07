@@ -208,7 +208,8 @@ const UI = {
         document.getElementById('time-tracker').innerHTML = `Sem ${semester} | Turn ${turn} | ${blockText}`;
         // --- NEW: Trigger the Progress Bar ---
         if (typeof this.renderTimeline === 'function') {
-            this.renderTimeline(turn);\n
+            this.renderTimeline(turn);
+
         // --- NEW: PLACEMENT READINESS TRACKER ---
         const algoReady = (resume.Algo || 0) >= 1;
         const internReady = (resume.Internships || 0) >= 1;
