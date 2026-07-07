@@ -6,4 +6,4 @@ SC_04,SOCIAL,Jugaad Friend,Personal,CCD / Subway,2,1,8,0,0,0,0,1,0,None,0,0,0,0,
 SC_05,SOCIAL,Research Professor,Academic,PKK Library,4,3,8,0,0,0,0,0,0,None,0,0,2,0,0,0,0,0,1,Grants access to closed lab resources.,Demanding but brilliant. A single recommendation letter from them changes everything.
 SC_06,SOCIAL,Teaching Assistant,Academic,Work / TA,2,2,8,0,0,0,0,0,0,None,1,0,1,0,0,0,0,1,0,Buffers your academic grading curve.,They grade your papers and occasionally vent to you about the Professor.
 SC_07,SOCIAL,Gymkhana Mentor,Leadership,Sports Complex,3,2,8,0,0,0,0,0,0,None,0,2,0,0,1,0,0,0,1,Navigates festival politics for you.,A master of SAC operations. They know how to get budgets approved.
-SC_08,SOCIAL,Industry Mentor,Career,NCL,4,5,8,0,0,0,0,0,0,None,0,0,0,0,0,0,0,0,0,Prepares you for the SPO whiteboard interviews.,An alumni who returns just to mock your resume and then fix it.
+SC_08,SOCIAL,Industry Mentor,Career,NCL,4,5,8,0,0,0,0,0,0,None,2,1,0,2,0,0,0,0,0,Prepares you for the SPO whiteboard interviews.,An alumni who returns just to mock your resume and then fix it.
