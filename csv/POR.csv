@@ -54,7 +54,7 @@ OPP_052,POR,festcoord_udghosh,POR,7,8,5,0,0,2,0,4,organiser_udghosh,0,3,0,1
 OPP_053,POR,volunteer_gymkhana,POR,1,2,2,0,0,0,0,1,None,0,0,0,0
 OPP_054,POR,senator,POR,1,8,3,0,0,1,0,2,None,0,1,0,0
 OPP_055,POR,gymkhana_secy,POR,5,6,4,0,0,2,0,3,senator,0,2,0,0
-OPP_056,POR,president_gymkhana,POR,7,8,5,0,0,3,0,4,gymkhana_secy + Social>=80,0,3,0,2
+OPP_056,POR,president_gymkhana,POR,7,8,5,0,0,3,0,4,gymkhana_secy + Social>=8,0,3,0,2
 OPP_057,POR,volunteer_udghosh,POR,1,2,2,0,0,0,0,1,None,0,0,0,0
 OPP_058,POR,secy_udghosh,POR,3,4,3,0,0,1,0,2,volunteer_udghosh,0,1,0,0
 OPP_059,POR,head_udghosh,POR,5,6,4,0,0,2,0,3,secy_udghosh,0,2,0,0
