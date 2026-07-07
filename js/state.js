@@ -5,20 +5,13 @@ const GAME_CONFIG = {
     
     // THE CENTRALIZED GRADING ENGINE
     SPI_GRADING_SCALE: [
-        { min: 70, spi: 10.00 },
-        { min: 66, spi: 9.67 },
-        { min: 62, spi: 9.33 },
-        { min: 58, spi: 9.00 },
-        { min: 54, spi: 8.67 },
-        { min: 50, spi: 8.33 },
-        { min: 46, spi: 8.00 },
-        { min: 42, spi: 7.67 },
-        { min: 38, spi: 7.33 },
-        { min: 34, spi: 7.00 },
-        { min: 30, spi: 6.67 },
-        { min: 26, spi: 6.33 },
-        { min: 22, spi: 6.00 },
-        { min: 0,  spi: 5.00 }
+        { min: 112, spi: 10.00 }, // Requires 16 blocks (Complete academic sacrifice)
+        { min: 98, spi: 9.00 },   // Requires 14 blocks 
+        { min: 84, spi: 8.00 },   // Requires 12 blocks
+        { min: 70, spi: 7.00 },   // Requires 10 blocks (The old 10.0 is now a 7.0!)
+        { min: 56, spi: 6.00 },   // Requires 8 blocks
+        { min: 42, spi: 5.00 },   // Requires 6 blocks
+        { min: 0, spi: 4.00 }     // Baseline failure
     ]
 };
 

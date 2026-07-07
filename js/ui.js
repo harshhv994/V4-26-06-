@@ -337,7 +337,7 @@ const UI = {
                     <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 20px; margin-bottom: 20px;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 1.2em;">
                             <span>📚 Study Points</span>
-                            <span style="color: var(--accent-blue); font-weight: bold;">${studyPoints} / 140</span>
+                            <span style="color: var(--accent-blue); font-weight: bold;">${studyPoints} / 112</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 1.2em;">
                             <span>🎯 Semester SPI</span>
@@ -353,7 +353,7 @@ const UI = {
                         <div style="font-weight: bold; color: var(--accent-blue); margin-bottom: 8px;">💡 Academic Insight</div>
                         <div style="font-size: 0.85em; color: var(--text-main); line-height: 1.5;">
                             Your Study Points represent the total academic effort invested throughout the semester, including lectures, tutorials, assignments, quizzes, labs, course projects, and exam preparation.<br><br>
-                            A perfect 10.00 SPI requires 140 Study Points, reflecting consistent academic effort across the entire semester—not just classroom attendance.
+                            A perfect 10.00 SPI requires 112 Study Points, reflecting consistent academic effort across the entire semester—not just classroom attendance.
                         </div>
                     </div>
                     
