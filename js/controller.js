@@ -17,9 +17,36 @@ const Controller = {
     },
 
     startNarrative: function () {
+        // --- NEW: PHASE 2 "DEATH SPIRAL" FIX (Semester Recovery) ---
+        const recoveryTurns = [3, 6, 9]; 
+        
+        if (recoveryTurns.includes(state.turn) && state.recoveryAppliedForTurn !== state.turn) {
+            state.recoveryAppliedForTurn = state.turn; 
+            
+            state.stats.Money = Math.min(10, state.stats.Money + 4); 
+            state.stats.Health = Math.min(10, state.stats.Health + 3);
+            state.stats.Stress = Math.max(0, state.stats.Stress - 4);
+            
+            if (typeof Logic !== 'undefined' && typeof Logic.clampStats === 'function') Logic.clampStats();
+            
+            if (typeof Logic !== 'undefined' && typeof Logic.addLog === 'function') {
+                Logic.addLog({
+                    type: 'opportunity',
+                    icon: '✈️',
+                    title: 'Semester Break Rest',
+                    desc: 'You went home, ate good food, and got pocket money from your parents.',
+                    effects: { Health: 3, Stress: -4, Money: 4 },
+                    semester: state.semester,
+                    turn: state.turn
+                });
+            }
+            this.syncHUD();
+        }
+
+        // --- EXISTING NARRATIVE LOGIC ---
         const currentData = db.timeline.find(t => t.Turn === state.turn);
         if (!currentData) {
-            UI.updateBoard(`<h2>Game Over</h2><p>Proceed to Placement Evaluation.</p>`);
+            UI.updateBoard('<h2>Game Over</h2><p>Proceed to Placement Evaluation.</p>');
             return;
         }
         UI.updateNarrativeSidePanel(`${currentData.Semester}: ${currentData.Phase}`, currentData['the vibe']);
@@ -28,9 +55,11 @@ const Controller = {
         // --- ONE-TIME UX TUTORIAL ---
         if (state.turn === 1 && !state.hasSeenTimeTutorial) {
             document.body.insertAdjacentHTML('beforeend', UI.renderTutorialModal());
+            state.hasSeenTimeTutorial = true;
         }
     },
-    startInterlude: function () {
+
+startInterlude: function () {
         UI.updateNarrativeSidePanel("The SPO Portal", "The official placement office portal is live. Major corporate internships are now available.");
         
         // Filter: Only load heavy corporate SPO internships for the Interlude
