@@ -208,7 +208,23 @@ const UI = {
         document.getElementById('time-tracker').innerHTML = `Sem ${semester} | Turn ${turn} | ${blockText}`;
         // --- NEW: Trigger the Progress Bar ---
         if (typeof this.renderTimeline === 'function') {
-            this.renderTimeline(turn);
+            this.renderTimeline(turn);\n
+        // --- NEW: PLACEMENT READINESS TRACKER ---
+        const algoReady = (resume.Algo || 0) >= 1;
+        const internReady = (resume.Internships || 0) >= 1;
+
+        const algoEl = document.getElementById('req-algo');
+        if (algoEl) {
+            algoEl.innerHTML = `<span style="display:inline-block; width:14px; height:14px; border-radius:3px; text-align:center; line-height:14px; font-size:10px; font-weight:bold; ${algoReady ? 'background: var(--accent-green); color: black; border: 1px solid var(--accent-green);' : 'border: 1px solid #555; color: transparent;'}>${algoReady ? '✓' : ''}</span> 
+                <span style="${algoReady ? 'color: var(--text-main); font-weight: bold;' : 'color: var(--text-muted);'}">Technical (Algo 1+)</span>`;
+        }
+        
+        const internEl = document.getElementById('req-intern');
+        if (internEl) {
+            internEl.innerHTML = `<span style="display:inline-block; width:14px; height:14px; border-radius:3px; text-align:center; line-height:14px; font-size:10px; font-weight:bold; ${internReady ? 'background: var(--accent-green); color: black; border: 1px solid var(--accent-green);' : 'border: 1px solid #555; color: transparent;'}>${internReady ? '✓' : ''}</span> 
+                <span style="${internReady ? 'color: var(--text-main); font-weight: bold;' : 'color: var(--text-muted);'}">Internship Secured</span>`;
+        }
+
         }
 
     },
